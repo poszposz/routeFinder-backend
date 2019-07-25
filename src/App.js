@@ -1,25 +1,33 @@
-import React, { Component } from 'react';
-import logo from './logo.svg';
+import React from 'react';
+import { 
+  Component,
+} from 'react';
 import './App.css';
 
 class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
-      name: '',
-      greeting: ''
+      startLocation: '',
+      endLocation: '',
+      routeDescription: ''
     };
-    this.handleChange = this.handleChange.bind(this);
+    this.handleStartLocationChange = this.handleStartLocationChange.bind(this);
+    this.handleEndLocationChange = this.handleEndLocationChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
-  handleChange(event) {
-    this.setState({ name: event.target.value });
+  handleStartLocationChange(event) {
+    this.setState({ startLocation: event.target.value });
+  }
+
+  handleEndLocationChange(event) {
+    this.setState({ endLocation: event.target.value });
   }
 
   handleSubmit(event) {
     event.preventDefault();
-    fetch(`/api/greeting?name=${encodeURIComponent(this.state.name)}`)
+    fetch(`/api/routes/find?startLocation=${encodeURIComponent(this.state.startLocation)}&endLocation=${encodeURIComponent(this.state.endLocation)}`)
       .then(response => response.json())
       .then(state => this.setState(state));
   }
@@ -29,16 +37,24 @@ class App extends Component {
       <div className="App">
         <header className="App-header">
           <form onSubmit={this.handleSubmit}>
-            <label htmlFor="name">Enter your name: </label>
+            <label htmlFor="name">Enter start and end locations:</label>
+            <br></br>
+            <br></br>
             <input
-              id="name"
+              id="start_location"
               type="text"
-              value={this.state.name}
-              onChange={this.handleChange}
+              value={this.state.startLocation}
+              onChange={this.handleStartLocationChange}
+            />
+            <input
+              id="end_location"
+              type="text"
+              value={this.state.endLocation}
+              onChange={this.handleEndLocationChange}
             />
             <button type="submit">Submit</button>
           </form>
-          <p>{this.state.greeting}</p>
+          <p>{this.state.routeDescription}</p>
         </header>
       </div>
     );

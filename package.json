@@ -13,7 +13,7 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "run_combined": "yarn start src/ ; yarn --cwd ./backend start "
+    "run_combined": "yarn start src/ & yarn --cwd ./backend start"
   },
   "eslintConfig": {
     "extends": "react-app"
