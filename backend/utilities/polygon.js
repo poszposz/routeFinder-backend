@@ -1,5 +1,3 @@
-var LocationCoordinate = require('./locationCoordinate');
-
 class Polygon {
 
   constructor(start, end) {
@@ -8,13 +6,20 @@ class Polygon {
   }
 
   extendedBoundingBox() {
+    console.log('created polygon bounding box.');
     const boundingBoxRadiusExtendRatio = 0.01;
     let latitiudeMin = Math.min(this.start.latitude, this.end.latitude);
     let longitudeMin = Math.min(this.start.longitude, this.end.longitude);
     let latitiudeMax = Math.max(this.start.latitude, this.end.latitude);
     let longitudeMax = Math.max(this.start.longitude, this.end.longitude);
-    const bottomLeft = new LocationCoordinate(latitiudeMin - boundingBoxRadiusExtendRatio, longitudeMin - boundingBoxRadiusExtendRatio);
-    const topRight = new LocationCoordinate(latitiudeMax + boundingBoxRadiusExtendRatio, longitudeMax + boundingBoxRadiusExtendRatio);
+    const bottomLeft = { 
+      latitude: latitiudeMin - boundingBoxRadiusExtendRatio, 
+      longitude: longitudeMin - boundingBoxRadiusExtendRatio
+    };
+    const topRight = { 
+      latitude: latitiudeMax + boundingBoxRadiusExtendRatio, 
+      longitude: longitudeMax + boundingBoxRadiusExtendRatio
+    };
     return new Polygon(bottomLeft, topRight);;
   }
 
