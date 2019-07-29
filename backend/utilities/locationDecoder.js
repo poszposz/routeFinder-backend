@@ -17,7 +17,6 @@ async function decodeLocation(location) {
     }
   });
   let locationData = response.data[0];
-  console.log(locationData);
   if (locationData.length === 0) {
     let errorData = {
       code: 401,
@@ -27,8 +26,10 @@ async function decodeLocation(location) {
   }
   return {
     displayName: locationData['display_name'],
-    latitude: locationData['lat'],
-    longitude: locationData['lon'],
+    location: {
+      latitude: locationData['lat'],
+      longitude: locationData['lon'],
+    }
   };
 }
 
