@@ -1,4 +1,4 @@
-const Polygon = require('./polygon');
+const Route = require('./route');
 const axios = require('axios');
 
 const client = axios.create({
@@ -7,23 +7,18 @@ const client = axios.create({
   responseType: 'json',
 });
 
-async function downloadGraph(start, end) {
-  const polygon = new Polygon(start, end);
+async function downloadGraph() {
   const response = await client({
     method: 'get',
-    url: `sql?q=SELECT opis, kategoria, ST_AsGeoJson(the_geom) AS cords, ST_AsGeoJson(the_geom) AS cords, ST_AsText(the_geom_webmercator) AS createpoints FROM public.infrastruktura_rowerowa_06_2018 WHERE ST_Intersects(the_geom, ST_MakeEnvelope(${polygon.locationQuery()}, 4326))`,
+    url: `sql?q=SELECT opis, kategoria, ST_AsGeoJson(the_geom) AS cords, ST_AsGeoJson(the_geom) AS cords FROM public.infrastruktura_rowerowa_06_2018`,
   });
-  return response.data;
+  return parseRoutes(response.data);
 }
 
 function parseRoutes(json) {
   const rows = json["rows"];
   return rows.map((data) => {
-    return  {
-      description: data['opis'],
-      category: data['kategoria'],
-      location: data['cords'],
-    }
+    return new Route(data['opis'], data['kategoria'], data['cords']);;
   });
 }
 
