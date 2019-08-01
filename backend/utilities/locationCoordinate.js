@@ -7,7 +7,7 @@ class LocationCoordinate {
   }
 
   equals(location) {
-    return (this.longitude == location.longitude && this.latitude == location.latitude);
+    return (this.longitude === location.longitude && this.latitude === location.latitude);
   }
 }
 

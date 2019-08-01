@@ -20,7 +20,7 @@ function segmentLength(segment) {
 function findNearest(location, routes, maximumRadius) {
   var radius = 1;
   var nearestRoutes = findRoutes(location, routes, radius);
-  while (nearestRoutes.length == 0 && radius < maximumRadius) {
+  while (nearestRoutes.length === 0 && radius < maximumRadius) {
     radius = radius + 10;
     nearestRoutes = findRoutes(location, routes, radius);
   }
