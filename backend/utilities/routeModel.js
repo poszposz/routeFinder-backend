@@ -4,8 +4,11 @@ require('../extensions/array');
 class Route {
 
   constructor(name, category, segmentString) {
-    this.startUsed = false;
-    this.endUsed = false;
+    this.markedStart = false;
+    this.markedEnd = false;
+    this.startPointVertexId = 0;
+    this.endPointVertexId = 0;
+
     this.name = name;
     this.category = category;
     this.segments = this.parseSegments(segmentString);
