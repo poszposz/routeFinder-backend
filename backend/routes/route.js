@@ -1,6 +1,7 @@
 var decodeLocation = require('../utilities/locationDecoder');
 var downloadGraph = require('../utilities/routeDownloadService');
 var express = require('express');
+var Graph = require('../optimization/graph');
 var router = express.Router();
 
 /* GET users listing. */
@@ -17,8 +18,9 @@ router.get('/find', async function(req, res, next) {
   }
   const decodedEndLocation = await decodeLocation(endLocation);
   const decodedStartLocation = await decodeLocation(startLocation);
-  const route = await downloadGraph(decodedStartLocation.location, decodedEndLocation.location);
-  res.json(route);
+  const routes = await downloadGraph(decodedStartLocation.location, decodedEndLocation.location);
+  const graph = new Graph(routes);
+  res.json(graph);
 });
 
 module.exports = router;
