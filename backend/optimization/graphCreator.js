@@ -1,15 +1,12 @@
 const distanceCalculation = require('./../utilities/distanceCalculation');
 const Vertex = require('./vertex');
-const Graph = require('./graph');
 
 const desiredDistanceThreshold = 20;
 
 function createGraph(routes) {
-  console.log('Entered created graph');
   let vertices = [];
   let id = 1;
   routes.forEach((route) => {
-    console.log('Going through route');    
     let removeableVertexIds = [];
     let extractedIncomingRoutes = [];
     let extractedOutcomingRoutes = [];
