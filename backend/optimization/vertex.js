@@ -13,7 +13,7 @@ class Vertex {
     
     let length = allLocations.length !== 0 ? allLocations.length : 1;
     const latitudeAverage = allLocations.reduce(((accumulator, current) => accumulator + current.latitude), 0) / length;
-    const longitudeAverage = allLocations.reduce((accumulator, current) => accumulator + current.longitude) / allLocations.length;
+    const longitudeAverage = allLocations.reduce(((accumulator, current) => accumulator + current.longitude), 0) / length;
     this.centerLocation = new LocationCoordinate(latitudeAverage, longitudeAverage);
   }
 }
