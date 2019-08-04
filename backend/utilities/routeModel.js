@@ -3,7 +3,8 @@ require('../extensions/array');
 
 class Route {
 
-  constructor(name, category, segmentString) {
+  constructor(id, name, category, segmentString) {
+    this.id = id;
     this.markedStart = false;
     this.markedEnd = false;
     this.startPointVertexId = 0;

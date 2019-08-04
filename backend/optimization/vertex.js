@@ -16,6 +16,14 @@ class Vertex {
     const longitudeAverage = allLocations.reduce(((accumulator, current) => accumulator + current.longitude), 0) / length;
     this.centerLocation = new LocationCoordinate(latitudeAverage, longitudeAverage);
   }
+
+  generateOutcomingRoutes() {
+    let transformedRoutes = {};
+    this.outcomingRoutes.forEach((route) => {
+      transformedRoutes[`${route.endPointVertexId}`] = route.totalLength;
+    });
+    return transformedRoutes;
+  }
 }
 
 module.exports= Vertex;

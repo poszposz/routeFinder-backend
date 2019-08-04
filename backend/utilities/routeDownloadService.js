@@ -16,9 +16,11 @@ async function downloadGraph() {
 }
 
 function parseRoutes(json) {
+  let id = 0;
   const rows = json["rows"];
   return rows.map((data) => {
-    return new Route(data['opis'], data['kategoria'], data['cords']);;
+    id += 1;
+    return new Route(id, data['opis'], data['kategoria'], data['cords']);
   });
 }
 

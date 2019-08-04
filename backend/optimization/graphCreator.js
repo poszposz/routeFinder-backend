@@ -1,7 +1,7 @@
 const distanceCalculation = require('./../utilities/distanceCalculation');
 const Vertex = require('./vertex');
 
-const desiredDistanceThreshold = 20;
+const desiredDistanceThreshold = 100;
 
 function createGraph(routes) {
   let vertices = [];
@@ -15,9 +15,6 @@ function createGraph(routes) {
       const eligible =  distance < desiredDistanceThreshold;
       if (eligible === true) {
         if (filteredRoute.markedStart === true) {
-          // Means that found start is already a part of some vertex
-          // We have to take start point vertex id and add it to removeable ids
-          // We have to add all incoming and outcoming routes to the newly created vertex.
           let vertex = vertices.find((iteratedVertex) => {
             return iteratedVertex.id === filteredRoute.startPointVertexId
           });
@@ -35,9 +32,6 @@ function createGraph(routes) {
       const eligible = distance < desiredDistanceThreshold;
       if (eligible === true) {
         if (filteredRoute.markedEnd === true) { 
-          // Means that found end is already a part of some vertex
-          // We have to take end point vertex id and add it to remove'able ids
-          // We have to add all incoming and outcoming routes to the newly created vertex.
           let vertex = vertices.find(iteratedVertex => iteratedVertex.id === filteredRoute.endPointVertexId);
           extractedIncomingRoutes = extractedIncomingRoutes.concat(vertex.incomingRoutes);
           extractedOutcomingRoutes = extractedOutcomingRoutes.concat(vertex.outcomingRoutes);
@@ -62,6 +56,14 @@ function createGraph(routes) {
     vertices = vertices.filter((vertex) => {
       return !removeableVertexIds.includes(vertex.id);
     });
+  });
+  routes.forEach((route) => {
+    if (route.endPointVertexId === 0) {
+      id = id + 1;
+      const vertex = new Vertex(id, [route], []);
+      vertices.push(vertex);
+      route.endPointVertexId = id;
+    } 
   });
   return vertices;
 };
