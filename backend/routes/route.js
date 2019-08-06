@@ -24,11 +24,11 @@ router.get('/find', async function(req, res, next) {
   
   const routes = await downloadGraph(decodedStartLocation.location, decodedEndLocation.location);
   const graph = new Graph(routes);
-  // const startVertex = graph.nearestStartVertex(decodedStartLocation.location);
-  // const endVertex = graph.nearestEndVertex(decodedEndLocation.location);
-  // const query = graph.generateDijkstraQuery();
-  // const dijkstra = new Dijkstra(query);
-  // const shortestRoute = dijkstra.findShortestPath(`${startVertex.id}`, `${endVertex.id}`);
+  const startVertex = graph.nearestStartVertex(decodedStartLocation.location);
+  const endVertex = graph.nearestEndVertex(decodedEndLocation.location);
+  const query = graph.generateDijkstraQuery();
+  const dijkstra = new Dijkstra(query);
+  const shortestRoute = dijkstra.findShortestPath(`${startVertex.id}`, `${endVertex.id}`);
 
   // console.log(`Query: ${JSON.stringify(query)}`);
   // console.log(`Start vertex: ${startVertex.id}`);

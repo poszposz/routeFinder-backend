@@ -1,5 +1,5 @@
 var LocationCoordinate = require('./locationCoordinate');
-var distanceCalculation = require('../utilities/distanceCalculation')
+var distanceCalculation = require('../utilities/distanceCalculation');
 
 class Segment {
 
@@ -14,6 +14,13 @@ class Segment {
 
   equals(segment) {
     return (this.start === segment.start && this.end === segment.end);
+  }
+
+  split() {
+    let averageLocation = new LocationCoordinate((this.start.latitude + this.end.latitude) / 2, (this.start.longitude + this.end.longitude) / 2);
+    let startMiddleSegment = new Segment([this.start.longitude, this.start.latitude, averageLocation.longitude, averageLocation.latitude], this.routeName);
+    let middleEndSegment = new Segment([averageLocation.longitude, averageLocation.latitude, this.end.longitude, this.end.latitude], this.routeName);
+    return [startMiddleSegment, middleEndSegment];
   }
 }
 

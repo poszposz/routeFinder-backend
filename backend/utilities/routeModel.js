@@ -12,7 +12,8 @@ class Route {
 
     this.name = name;
     this.category = category;
-    this.segments = this.parseSegments(segmentString);
+    let originalSegments = this.parseSegments(segmentString);
+    this.segments = this.normalizeSegments(originalSegments);
     this.totalLength = this.segments.reduce((previous, next) => {
       return previous + next.length;
     }, 0);
@@ -28,6 +29,22 @@ class Route {
     segments[0].isBeginning = true;
     segments[segments.length - 1].isEnding = true;
     return segments;
+  }
+
+  normalizeSegments(segments) {
+    return segments.map((segment) => {
+      if (segment.length <= 20) {
+        return segment;
+      }
+      let segments = segment.split();
+      while (segments[0].length > 20) {
+        let reduced = segments.map((smallerSegment) => {
+          return smallerSegment.split();
+        }).flatten();
+        segments = reduced;
+      };
+      return segments;
+    }).flatten();
   }
 }
 

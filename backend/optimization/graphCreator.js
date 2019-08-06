@@ -1,7 +1,7 @@
 const distanceCalculation = require('./../utilities/distanceCalculation');
 const Vertex = require('./vertex');
 
-const desiredDistanceThreshold = 100;
+const desiredDistanceThreshold = 20;
 
 function createGraph(routes) {
   let vertices = [];
