@@ -11,6 +11,9 @@ function createGraph(routes) {
     let extractedIncomingRoutes = [];
     let extractedOutcomingRoutes = [];
     let outcomingNeighbors = routes.filter((filteredRoute) => {
+      if (filteredRoute.id === route.id) {
+        return false;
+      }
       const distance = distanceCalculation.distanceBetweenLocations(route.start, filteredRoute.start);
       const eligible =  distance < desiredDistanceThreshold;
       if (eligible === true) {
@@ -28,6 +31,9 @@ function createGraph(routes) {
       return eligible;
     });
     let incomingNeighbors = routes.filter((filteredRoute) => {
+      if (filteredRoute.id === route.id) {
+        return false;
+      }
       const distance = distanceCalculation.distanceBetweenLocations(route.start, filteredRoute.end);
       const eligible = distance < desiredDistanceThreshold;
       if (eligible === true) {
