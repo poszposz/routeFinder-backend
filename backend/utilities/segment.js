@@ -1,10 +1,18 @@
 var LocationCoordinate = require('./locationCoordinate');
 var distanceCalculation = require('../utilities/distanceCalculation');
+var uuidv4 = require('./UUIDGenerator');
 
 class Segment {
 
   constructor(segmentPoints, routeName) {
     this.routeName = routeName;
+    this.id = uuidv4();
+
+    this.markedStart = false;
+    this.markedEnd = false;
+    this.startPointVertexId = 0;
+    this.endPointVertexId = 0;
+
     this.isBeginning = false;
     this.isEnding = false;
     this.start = new LocationCoordinate(segmentPoints[1], segmentPoints[0]);

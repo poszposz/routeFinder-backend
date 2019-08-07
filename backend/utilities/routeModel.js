@@ -5,10 +5,6 @@ class Route {
 
   constructor(id, name, category, segmentString) {
     this.id = id;
-    this.markedStart = false;
-    this.markedEnd = false;
-    this.startPointVertexId = 0;
-    this.endPointVertexId = 0;
 
     this.name = name;
     this.category = category;
