@@ -1,10 +1,11 @@
-const createGraph = require('./graphCreator');
+const GraphCreator = require('./graphCreator');
 const distanceCalculation = require('./../utilities/distanceCalculation');
 
 class Graph {
 
   constructor(routes) {
-    this.vertices = createGraph(routes);
+    this.graphCreator = new GraphCreator(routes);
+    this.vertices = this.graphCreator.createGraph();
   }
 
   generateDijkstraQuery() {
