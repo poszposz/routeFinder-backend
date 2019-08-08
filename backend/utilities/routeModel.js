@@ -8,6 +8,7 @@ class Route {
 
     this.name = name;
     this.category = category;
+    this.bidirectional = this.category === 'cpr' | this.category === 'ddr' | this.category.includes('c16t22');
     let originalSegments = this.parseSegments(segmentString);
     this.segments = this.normalizeSegments(originalSegments);
     this.totalLength = this.segments.reduce((previous, next) => {

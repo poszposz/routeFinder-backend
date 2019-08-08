@@ -90,6 +90,11 @@ class GraphCreator {
   findClosest(route, routes, distanceThreshold, directionType, searchType) {
     return routes.filter((filteredRoute) => {
       let baseLocation = searchType === SEARCH_AROUND_START ? route.start : route.end;
+      if (filteredRoute.bidirectional) {
+        let distanceToStart = distanceCalculation.distanceBetweenLocations(baseLocation, filteredRoute.start);
+        let distanceToEnd = distanceCalculation.distanceBetweenLocations(baseLocation, filteredRoute.end);
+        return distanceToStart <= distanceThreshold | distanceToEnd <= distanceThreshold
+      }
       let searchedLocation = directionType === SEARCH_INCOMING ? filteredRoute.end : filteredRoute.start;
       const distance = distanceCalculation.distanceBetweenLocations(baseLocation, searchedLocation);
       return distance <= distanceThreshold;
