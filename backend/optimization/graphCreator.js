@@ -9,6 +9,8 @@ const SEARCH_OUTCOMING = "SEARCH_OUTCOMING";
 
 const desiredDistanceThreshold = 30;
 
+const routeNearVertexIgnoreDistance = 800;
+
 class GraphCreator {
 
   constructor(routes) {
@@ -22,12 +24,42 @@ class GraphCreator {
       this.pushVertex(route, SEARCH_AROUND_START);
       this.pushVertex(route, SEARCH_AROUND_END);
     });
+    this.extractNearbySegments();
     return this.vertices;
   };
 
   autoincrementedId() {
     this.currentId += 1;
     return this.currentId;
+  }
+
+  extractNearbySegments() {    
+    // We have all segments from routes. Now we have to iterate via all vertices.
+    // We have to iterate through all routes and for each of them find a segment that is closest to the vertex.
+    this.vertices.forEach((vertex) => {
+      this.routes.forEach((route) => {
+        // We eliminate all routes that are incoming or outcoming from a currently iterated vertex.
+        // They can have very short first segments and create false data.
+        const outcomingRouteIds = vertex.outcomingRoutes.map((route) => route.id );
+        const incomingRouteIds = vertex.incomingRoutes.map((route) => route.id );
+        if (outcomingRouteIds.includes(route.id) | incomingRouteIds.includes.route.id) { return; }
+        // We eliminate routes that are to far away to be possibly near a given vertex.
+        const distanceToRouteStart = distanceCalculation.distanceBetweenLocations(vertex.centerLocation, route.start);
+        const distanceToRouteEnd = distanceCalculation.distanceBetweenLocations(vertex.centerLocation, route.end);
+        if (distanceToRouteStart > routeNearVertexIgnoreDistance & distanceToRouteEnd > routeNearVertexIgnoreDistance) {
+          return
+        }
+        // We find the first segment that is near enough to the specified vertex. Works much faster than sorting and extracting first.
+        const eligibleSegment = route.segments.find((segment) => {
+          const distance = distanceCalculation.distanceBetweenLocations(vertex.centerLocation, segment.start);
+          return distance <= desiredDistanceThreshold;
+        });
+        if (eligibleSegment === undefined) { return }
+        let distanceToClosest = distanceCalculation.distanceBetweenLocations(vertex.centerLocation, eligibleSegment.start);
+        if (distanceToClosest > desiredDistanceThreshold) { return; }
+
+      });
+    });
   }
 
   pushVertex(route, searchType) {
@@ -88,12 +120,12 @@ class GraphCreator {
    * Additionally searches for for incoming or outcoming routes, based on directionType passed. Can be SEARCH_INCOMING or SEARCH_OUTCOMING.
    */
   findClosest(route, routes, distanceThreshold, directionType, searchType) {
+    let baseLocation = searchType === SEARCH_AROUND_START ? route.start : route.end;
     return routes.filter((filteredRoute) => {
-      let baseLocation = searchType === SEARCH_AROUND_START ? route.start : route.end;
       if (filteredRoute.bidirectional) {
         let distanceToStart = distanceCalculation.distanceBetweenLocations(baseLocation, filteredRoute.start);
         let distanceToEnd = distanceCalculation.distanceBetweenLocations(baseLocation, filteredRoute.end);
-        return distanceToStart <= distanceThreshold | distanceToEnd <= distanceThreshold
+        return distanceToStart <= distanceThreshold | distanceToEnd <= distanceThreshold;
       }
       let searchedLocation = directionType === SEARCH_INCOMING ? filteredRoute.end : filteredRoute.start;
       const distance = distanceCalculation.distanceBetweenLocations(baseLocation, searchedLocation);
