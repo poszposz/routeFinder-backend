@@ -4,8 +4,8 @@ const distanceCalculation = require('./../utilities/distanceCalculation');
 class Graph {
 
   constructor(routes) {
-    this.graphCreator = new GraphCreator(routes);
-    this.vertices = this.graphCreator.createGraph();
+    const graphCreator = new GraphCreator(routes);
+    this.vertices = graphCreator.createGraph();
   }
 
   generateDijkstraQuery() {
