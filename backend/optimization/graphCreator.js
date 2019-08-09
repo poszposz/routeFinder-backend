@@ -46,9 +46,7 @@ class GraphCreator {
         // We eliminate routes that are to far away to be possibly near a given vertex.
         const distanceToRouteStart = distanceCalculation.distanceBetweenLocations(vertex.centerLocation, route.start);
         const distanceToRouteEnd = distanceCalculation.distanceBetweenLocations(vertex.centerLocation, route.end);
-        if (distanceToRouteStart > routeNearVertexIgnoreDistance & distanceToRouteEnd > routeNearVertexIgnoreDistance) {
-          return
-        }
+        if (distanceToRouteStart > routeNearVertexIgnoreDistance & distanceToRouteEnd > routeNearVertexIgnoreDistance) { return; }
         // We find the first segment that is near enough to the specified vertex. Works much faster than sorting and extracting first.
         const eligibleSegment = route.segments.find((segment) => {
           const distance = distanceCalculation.distanceBetweenLocations(vertex.centerLocation, segment.start);
