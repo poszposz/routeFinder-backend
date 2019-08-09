@@ -10,8 +10,6 @@ class Segment {
 
     this.markedStart = false;
     this.markedEnd = false;
-    this.startPointVertexId = 0;
-    this.endPointVertexId = 0;
 
     this.isBeginning = false;
     this.isEnding = false;

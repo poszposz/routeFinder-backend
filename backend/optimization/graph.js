@@ -8,6 +8,12 @@ class Graph {
     this.vertices = graphCreator.createGraph();
   }
 
+  generateGraphVisualization() {
+    return {
+      'vertices': this.vertices
+    };
+  }
+
   generateDijkstraQuery() {
     let transformedGraph = {};
     this.vertices.forEach((vertex) => {

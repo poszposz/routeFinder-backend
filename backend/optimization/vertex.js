@@ -13,8 +13,8 @@ class Vertex {
     const longitudeAverage = allLocations.reduce(((accumulator, current) => accumulator + current.longitude), 0) / length;
     this.centerLocation = new LocationCoordinate(latitudeAverage, longitudeAverage);
 
-    this.incomingRoutes = incomingRoutes === undefined ? [] : incomingRoutes.map((closeRoute) => closeRoute.id);;
-    this.outcomingRoutes = outcomingRoutes === undefined ? [] : outcomingRoutes.map((closeRoute) => closeRoute.id);;
+    this.incomingRoutes = incomingRoutes === undefined ? [] : incomingRoutes;
+    this.outcomingRoutes = outcomingRoutes === undefined ? [] : outcomingRoutes;
   }
 
   generateOutcomingRoutes() {

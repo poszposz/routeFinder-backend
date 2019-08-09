@@ -1,5 +1,7 @@
 const Route = require('./routeModel');
 const Polygon = require('./polygon');
+const Segment = require('./segment');
+const uuidv4 = require('./UUIDGenerator');
 const axios = require('axios');
 
 const client = axios.create({
@@ -27,12 +29,22 @@ async function downloadGraph() {
 }
 
 function parseRoutes(json) {
-  let id = 0;
   const rows = json["rows"];
   return rows.map((data) => {
-    id += 1;
-    return new Route(id, data['opis'], data['kategoria'], data['cords']);
+    const segmentString = data['cords'];
+    const segments = parseSegments(segmentString);
+    return new Route(uuidv4(), data['opis'], data['kategoria'], segments);
   });
+
+  function parseSegments(segmentString) {
+    const pointsArray = segmentString.match(/[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)/g).chunk(2);
+    const segments = pointsArray.slice(1).map((points, index) => {
+      return new Segment(pointsArray[index].concat(points), this.name);
+    });
+    segments[0].isBeginning = true;
+    segments[segments.length - 1].isEnding = true;
+    return segments;
+  }
 }
 
 module.exports = {

@@ -1,31 +1,23 @@
-var Segment = require('./segment');
 require('../extensions/array');
 
 class Route {
 
-  constructor(id, name, category, segmentString) {
+  constructor(id, name, category, segments) {
     this.id = id;
+
+    this.startPointVertexId = 0;
+    this.endPointVertexId = 0;
 
     this.name = name;
     this.category = category;
     this.bidirectional = this.category === 'cpr' | this.category === 'ddr' | this.category.includes('c16t22');
-    let originalSegments = this.parseSegments(segmentString);
+    let originalSegments = segments;
     this.segments = this.normalizeSegments(originalSegments);
     this.totalLength = this.segments.reduce((previous, next) => {
       return previous + next.length;
     }, 0);
     this.start = this.segments[0].start;
     this.end = this.segments[this.segments.length - 1].end;
-  }
-
-  parseSegments(segmentString) {
-    const pointsArray = segmentString.match(/[+-]?([0-9]+([.][0-9]*)?|[.][0-9]+)/g).chunk(2);
-    const segments = pointsArray.slice(1).map((points, index) => {
-      return new Segment(pointsArray[index].concat(points), this.name);
-    });
-    segments[0].isBeginning = true;
-    segments[segments.length - 1].isEnding = true;
-    return segments;
   }
 
   normalizeSegments(segments) {
@@ -42,6 +34,23 @@ class Route {
       };
       return segments;
     }).flatten();
+  }
+
+  splitBy(segment) {
+    let segmentFound = false;
+    let prefixingSegments = [];
+    let suffixingSegments = [];
+    this.segments.forEach((iteratedSegment) => {
+      if (iteratedSegment.id === segment.id) {
+        segmentFound = true;
+      }
+      if (segmentFound) {
+        prefixingSegments.push(segment);
+      } else {
+        suffixingSegments.push(segment);
+      }
+    });
+    return [prefixingSegments, suffixingSegments];
   }
 }
 

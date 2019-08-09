@@ -60,7 +60,7 @@ router.get('/restrictedArea', async function(req, res, next) {
   
   const routes = await downloadService.downloadRestrictedGraph(decodedStartLocation.location, decodedEndLocation.location);
   const graph = new Graph(routes);
-  res.json(graph);
+  res.json(graph.generateGraphVisualization());
 });
 
 module.exports = router;

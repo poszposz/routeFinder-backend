@@ -1,5 +1,7 @@
 const distanceCalculation = require('./../utilities/distanceCalculation');
 const Vertex = require('./vertex');
+const Route = require('../utilities/routeModel');
+var uuidv4 = require('../utilities/UUIDGenerator');
 
 const SEARCH_AROUND_START = "SEARCH_AROUND_START";
 const SEARCH_AROUND_END = "SEARCH_AROUND_END";
@@ -16,7 +18,6 @@ class GraphCreator {
   constructor(routes) {
     this.routes = routes;
     this.vertices = [];
-    this.currentId = 1;
   }
 
   createGraph() {
@@ -27,11 +28,6 @@ class GraphCreator {
     this.extractNearbySegments();
     return this.vertices;
   };
-
-  autoincrementedId() {
-    this.currentId += 1;
-    return this.currentId;
-  }
 
   extractNearbySegments() {    
     // We have all segments from routes. Now we have to iterate via all vertices.
@@ -52,10 +48,54 @@ class GraphCreator {
           const distance = distanceCalculation.distanceBetweenLocations(vertex.centerLocation, segment.start);
           return distance <= desiredDistanceThreshold;
         });
-        if (eligibleSegment === undefined) { return }
-        let distanceToClosest = distanceCalculation.distanceBetweenLocations(vertex.centerLocation, eligibleSegment.start);
-        if (distanceToClosest > desiredDistanceThreshold) { return; }
-
+        // If none found, just return from the method.
+        if (eligibleSegment === undefined) { return; }
+        // We split the currently iterated route via given segment.
+        let splitted = route.splitBy(eligibleSegment);
+        let prefixedSegments = splitted[0];
+        let suffixedSegments = splitted[1];
+        if (prefixedSegments.length === 0 | suffixedSegments.length === 0) { return; }
+        // We have to create two routes from prefixed and suffixed segments.
+        let prefixedRoute = new Route(uuidv4(), route.name, route.category, prefixedSegments);
+        let suffixedRoute = new Route(uuidv4(), route.name, route.category, suffixedSegments);
+        
+        console.log(`General route: ${JSON.stringify(route)}`);
+        
+        // We have to find a vertex this route is starting with.
+        let startVertex = this.vertices.find((vertex) => vertex.id === route.startPointVertexId);
+        // Basing on the information if a given route is bidirectional: 
+        // - append prefixedRoute to outcoming routes of the start vertex of a general route.
+        // - append prefixedRoute to incoming and outcoming routes of the start vertex of a general route.
+        if (prefixedRoute.isBidirectional) {
+          startVertex.outcomingRoutes = startVertex.outcomingRoutes.concat(prefixedRoute);
+          startVertex.incomingRoutes = startVertex.incomingRoutes.concat(prefixedRoute);
+        } else {
+          startVertex.outcomingRoutes = startVertex.outcomingRoutes.concat(prefixedRoute);
+        }
+        // We have to find a vertex this route is ending with.
+        let endVertex = this.vertices.find((vertex) => vertex.id === route.endPointVertexId);
+        // Basing on the information if a given route is bidirectional: 
+        // - append prefixedRoute to incoming routes of the start vertex of a general route.
+        // - append prefixedRoute to incoming and outcoming routes of the start vertex of a general route.
+        if (prefixedRoute.isBidirectional) {
+          endVertex.outcomingRoutes = startVertex.outcomingRoutes.concat(suffixedRoute);
+          endVertex.incomingRoutes = startVertex.incomingRoutes.concat(suffixedRoute);
+        } else {
+          endVertex.incomingRoutes = startVertex.outcomingRoutes.concat(suffixedRoute);
+        }
+        // Now we have to add prefixed and sufixed route to the current vertex.
+        // Basing on the information if a given route is bidirectional: 
+        // - append prefixed to incoming and sufixed to outcoming.
+        // - append prefixed to incoming and outcoming, append suffixed to incoming and outcoming.
+        if (route.isBidirectional) {
+          vertex.outcomingRoutes = vertex.outcomingRoutes.concat(prefixedRoute);
+          vertex.incomingRoutes = vertex.incomingRoutes.concat(prefixedRoute);
+          vertex.outcomingRoutes = vertex.outcomingRoutes.concat(suffixedRoute);
+          vertex.incomingRoutes = vertex.incomingRoutes.concat(suffixedRoute);
+        } else {
+          vertex.incomingRoutes = vertex.incomingRoutes.concat(prefixedRoute);
+          vertex.outcomingRoutes = vertex.outcomingRoutes.concat(suffixedRoute);
+        }
       });
     });
   }
@@ -85,7 +125,7 @@ class GraphCreator {
       // Handle routes that already belong to a vertex.
       // First extract vertex ids for both types.
       let correlatedIncomingVertexIds = alreadyCorrelatedIncoming.map((incomingRoute) => incomingRoute.endPointVertexId );
-      let correlatedOutcomingVertexIds = alreadyCorrelatedOutcoming.map((outcomingRoute) => outcomingRoute.endPointVertexId );
+      let correlatedOutcomingVertexIds = alreadyCorrelatedOutcoming.map((outcomingRoute) => outcomingRoute.startPointVertexId );
 
       /// Than create an array of vertices that should be removed by concatenating both these arrays.
       let verticesToRemove = correlatedIncomingVertexIds.concat(correlatedOutcomingVertexIds);
@@ -108,8 +148,15 @@ class GraphCreator {
       });
 
       // Create new vertex with all gathered data and append it to vertices prop.
-      const vertex = new Vertex(this.autoincrementedId(), incomingCloseToStart, outcomingCloseToStart);
+      const vertexId = uuidv4();
+      const vertex = new Vertex(vertexId, incomingCloseToStart, outcomingCloseToStart);
       this.vertices.push(vertex);
+      incomingCloseToStart.forEach((incomingRoute) => {
+        incomingRoute.endPointVertexId = vertexId;
+      });
+      outcomingCloseToStart.forEach((outcomingRoute) => {
+        outcomingRoute.startPointVertexId = vertexId;
+      });
   }
 
   /**
