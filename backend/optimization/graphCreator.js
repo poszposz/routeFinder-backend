@@ -42,7 +42,7 @@ class GraphCreator {
         // They can have very short first segments and create false data.
         const outcomingRouteIds = vertex.outcomingRoutes.map((route) => route.id );
         const incomingRouteIds = vertex.incomingRoutes.map((route) => route.id );
-        if (outcomingRouteIds.includes(route.id) | incomingRouteIds.includes.route.id) { return; }
+        if (outcomingRouteIds.includes(route.id) | incomingRouteIds.includes(route.id)) { return; }
         // We eliminate routes that are to far away to be possibly near a given vertex.
         const distanceToRouteStart = distanceCalculation.distanceBetweenLocations(vertex.centerLocation, route.start);
         const distanceToRouteEnd = distanceCalculation.distanceBetweenLocations(vertex.centerLocation, route.end);
