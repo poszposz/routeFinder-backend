@@ -59,8 +59,6 @@ class GraphCreator {
         let prefixedRoute = new Route(uuidv4(), route.name, route.category, prefixedSegments);
         let suffixedRoute = new Route(uuidv4(), route.name, route.category, suffixedSegments);
         
-        console.log(`General route: ${JSON.stringify(route)}`);
-        
         // We have to find a vertex this route is starting with.
         let startVertex = this.vertices.find((vertex) => vertex.id === route.startPointVertexId);
         // Basing on the information if a given route is bidirectional: 
