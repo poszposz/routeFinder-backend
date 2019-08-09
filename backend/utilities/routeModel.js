@@ -45,9 +45,9 @@ class Route {
         segmentFound = true;
       }
       if (segmentFound) {
-        prefixingSegments.push(segment);
+        prefixingSegments.push(iteratedSegment);
       } else {
-        suffixingSegments.push(segment);
+        suffixingSegments.push(iteratedSegment);
       }
     });
     return [prefixingSegments, suffixingSegments];

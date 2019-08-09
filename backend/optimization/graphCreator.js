@@ -26,8 +26,19 @@ class GraphCreator {
       this.pushVertex(route, SEARCH_AROUND_END);
     });
     this.extractNearbySegments();
+    this.assignBidirectional();
     return this.vertices;
   };
+
+  assignBidirectional() {
+    this.vertices.forEach((vertex) => {
+      const bidirectionalIncomingRoutes = vertex.incomingRoutes.filter((route) => route.bidirectional);
+      const bidirectionalOutcomingRoutes = vertex.outcomingRoutes.filter((route) => route.bidirectional);
+
+      vertex.outcomingRoutes = vertex.outcomingRoutes.concat(bidirectionalIncomingRoutes);
+      vertex.incomingRoutes = vertex.incomingRoutes.concat(bidirectionalOutcomingRoutes);
+    });
+  }
 
   extractNearbySegments() {    
     // We have all segments from routes. Now we have to iterate via all vertices.
@@ -165,11 +176,6 @@ class GraphCreator {
   findClosest(route, routes, distanceThreshold, directionType, searchType) {
     let baseLocation = searchType === SEARCH_AROUND_START ? route.start : route.end;
     return routes.filter((filteredRoute) => {
-      if (filteredRoute.bidirectional) {
-        let distanceToStart = distanceCalculation.distanceBetweenLocations(baseLocation, filteredRoute.start);
-        let distanceToEnd = distanceCalculation.distanceBetweenLocations(baseLocation, filteredRoute.end);
-        return distanceToStart <= distanceThreshold | distanceToEnd <= distanceThreshold;
-      }
       let searchedLocation = directionType === SEARCH_INCOMING ? filteredRoute.end : filteredRoute.start;
       const distance = distanceCalculation.distanceBetweenLocations(baseLocation, searchedLocation);
       return distance <= distanceThreshold;
