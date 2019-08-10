@@ -22,6 +22,14 @@ class Graph {
     return transformedGraph;
   }
 
+  debugDescription() {
+    let transformedGraph = {};
+    this.vertices.forEach((vertex) => {
+      transformedGraph[vertex.id] = vertex.debugDescription();
+    });
+    return transformedGraph;
+  }
+
   nearestStartVertex(location) {
     const possibleStartVertices = this.vertices.filter((vertex) => {
       return vertex.outcomingRoutes.length > 0

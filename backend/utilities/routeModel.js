@@ -1,4 +1,5 @@
 require('../extensions/array');
+const uuidv4 = require('./UUIDGenerator');
 
 class Route {
 
@@ -20,13 +21,27 @@ class Route {
     this.end = this.segments[this.segments.length - 1].end;
   }
 
+  copy() {
+    return new Route(this.id, this.name, this.category, this.segments);
+  }
+
+  debugDescription() {
+    return {
+      'id': this.id,
+      'name': this.name,
+      'start': this.startPointVertexId,
+      'end': this.endPointVertexId,
+      'length': this.length,
+    }
+  }
+
   normalizeSegments(segments) {
     return segments.map((segment) => {
-      if (segment.length <= 20) {
+      if (segment.length <= 60) {
         return segment;
       }
       let segments = segment.split();
-      while (segments[0].length > 20) {
+      while (segments[0].length > 60) {
         let reduced = segments.map((smallerSegment) => {
           return smallerSegment.split();
         }).flatten();

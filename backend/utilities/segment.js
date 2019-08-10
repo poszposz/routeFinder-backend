@@ -8,9 +8,6 @@ class Segment {
     this.routeName = routeName;
     this.id = uuidv4();
 
-    this.markedStart = false;
-    this.markedEnd = false;
-
     this.isBeginning = false;
     this.isEnding = false;
     this.start = new LocationCoordinate(segmentPoints[1], segmentPoints[0]);
