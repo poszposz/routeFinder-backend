@@ -22,11 +22,11 @@ class Route {
 
   normalizeSegments(segments) {
     return segments.map((segment) => {
-      if (segment.length <= 20) {
+      if (segment.length <= 40) {
         return segment;
       }
       let segments = segment.split();
-      while (segments[0].length > 20) {
+      while (segments[0].length > 40) {
         let reduced = segments.map((smallerSegment) => {
           return smallerSegment.split();
         }).flatten();
@@ -51,6 +51,16 @@ class Route {
       }
     });
     return [prefixingSegments, suffixingSegments];
+  }
+
+  debugDescription() {
+    return {
+      'id': this.id,
+      'name': this.name,
+      'start': this.startPointVertexId,
+      'end': this.endPointVertexId,
+      'length': this.totalLength,
+    }
   }
 }
 

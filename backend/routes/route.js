@@ -63,4 +63,32 @@ router.get('/restrictedArea', async function(req, res, next) {
   res.json(graph.generateGraphVisualization());
 });
 
+router.get('/dijkstraQuery', async function(req, res, next) {
+  let { startLocation, endLocation } = req.query;
+  
+  if (startLocation === undefined) {
+    res.status(401);
+    res.render('error', { error: 'No start location provided.' });
+  }
+  if (endLocation === undefined) {
+    res.status(401);
+    res.render('error', { error: 'No end location provided.' });
+  }
+  const decodedStartLocation = await decodeLocation(startLocation);
+  const decodedEndLocation = await decodeLocation(endLocation);
+
+  console.log(`Downloaded start location: ${JSON.stringify(decodedStartLocation)}`);
+  console.log(`Downloaded end location: ${JSON.stringify(decodedEndLocation)}`);
+  
+  const routes = await downloadService.downloadRestrictedGraph(decodedStartLocation.location, decodedEndLocation.location);
+  const graph = new Graph(routes);
+  const startVertex = graph.nearestStartVertex(decodedStartLocation.location);
+  const endVertex = graph.nearestEndVertex(decodedEndLocation.location);
+  console.log(`Nearest start vertex: ${startVertex.id}`);
+  console.log(`Nearest end vertex: ${endVertex.id}`);
+  
+  const query = graph.generateDijkstraQuery();
+  res.json(query);
+});
+
 module.exports = router;

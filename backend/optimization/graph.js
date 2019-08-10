@@ -47,6 +47,14 @@ class Graph {
     }
     return null;
   }
+
+  debugDescription() {
+    let transformedGraph = {};
+    this.vertices.forEach((vertex) => {
+      transformedGraph[vertex.id] = vertex.debugDescription();
+    });
+    return transformedGraph;
+  }
 }
 
 module.exports = Graph;

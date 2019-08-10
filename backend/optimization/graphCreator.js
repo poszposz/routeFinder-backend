@@ -18,6 +18,12 @@ class GraphCreator {
   constructor(routes) {
     this.routes = routes;
     this.vertices = [];
+    this.currentId = 1;
+  }
+
+  autoincrementedId() {
+    this.currentId += 1;
+    return this.currentId;
   }
 
   createGraph() {
@@ -27,17 +33,85 @@ class GraphCreator {
     });
     this.extractNearbySegments();
     this.assignBidirectional();
+    this.reassignVertexIds();
     return this.vertices;
   };
 
   assignBidirectional() {
     this.vertices.forEach((vertex) => {
+      // We find all bidirectiona routes coming in a nd out from a given vertex.
       const bidirectionalIncomingRoutes = vertex.incomingRoutes.filter((route) => route.bidirectional);
       const bidirectionalOutcomingRoutes = vertex.outcomingRoutes.filter((route) => route.bidirectional);
 
+      // We concatenate all incoming routes to outcoming routes and opposite.
       vertex.outcomingRoutes = vertex.outcomingRoutes.concat(bidirectionalIncomingRoutes);
       vertex.incomingRoutes = vertex.incomingRoutes.concat(bidirectionalOutcomingRoutes);
+
+      // For all bidirectional incoming routes we iterate, find starting vertex and add their begginings as outcoming to the start vertex.
+      bidirectionalIncomingRoutes.forEach((route) => {
+        let startingVertex = this.vertices.find((iteratedVertex) => iteratedVertex.id === route.startPointVertexId);
+        startingVertex.outcomingRoutes.push(route);
+      });
+      // And we do the same thing with the opposite.
+      bidirectionalOutcomingRoutes.forEach((route) => {
+        let endingVertex = this.vertices.find((iteratedVertex) => iteratedVertex.id === route.endPointVertexId);
+        endingVertex.incomingRoutes.push(route);
+      });
     });
+  }
+
+  reassignVertexIds() {
+    this.vertices = this.vertices.map((vertex) => {
+      vertex.outcomingRoutes = vertex.outcomingRoutes.map((route) => {
+        route.startPointVertexId = vertex.id;
+        return route;
+      });
+      vertex.incomingRoutes = vertex.incomingRoutes.map((route) => {
+        route.endPointVertexId = vertex.id;
+        return route;
+      });
+      return vertex;
+    });
+  }
+
+  /**
+   * Adds a single vertex with given incoming and outcoming routes. 
+   * Additionally checks if there is a vertex within desiredDistanceThreshold, if so, appends it with given routes.
+   */
+  addSingleVertex(incomingRoutes, outcomingRoutes) {
+    // Create new vertex with all gathered data and append it to vertices prop.
+    const vertexId = this.autoincrementedId();
+    const vertex = new Vertex(vertexId, incomingRoutes, outcomingRoutes);
+
+    // We fin a vertex that is already nerby a vertex that we are about to add.
+    const alreadyExistingVertex = this.vertices.find((iteratedVertex) => {
+      const distance = distanceCalculation.distanceBetweenLocations(vertex.centerLocation, iteratedVertex.centerLocation);
+      return distance < desiredDistanceThreshold;
+    });
+    if (alreadyExistingVertex === undefined) {
+      this.vertices.push(vertex);
+      incomingRoutes.forEach((incomingRoute) => {
+        incomingRoute.endPointVertexId = vertexId;
+      });
+      outcomingRoutes.forEach((outcomingRoute) => {
+        outcomingRoute.startPointVertexId = vertexId;
+      });
+    } else {
+      incomingRoutes.forEach((incomingRoute) => {
+        const alreadyExisitngIncomingRoute = alreadyExistingVertex.incomingRoutes.find((incomingVertexRoute) => incomingVertexRoute.id === incomingRoute.id);
+        if (alreadyExisitngIncomingRoute !== undefined) { return; }
+        incomingRoute.endPointVertexId = alreadyExistingVertex.id;
+        alreadyExistingVertex.incomingRoutes.push(incomingRoute);
+      });
+
+      outcomingRoutes.forEach((outcomingRoute) => {
+        const alreadyExisitngOutcomingRoute = alreadyExistingVertex.outcomingRoutes.find((outcomingVertexRoute) => outcomingVertexRoute.id === outcomingRoutes.id);
+        if (alreadyExisitngOutcomingRoute !== undefined) { return; }
+        outcomingRoute.startPointVertexId = alreadyExistingVertex.id;
+        alreadyExistingVertex.outcomingRoutes.push(outcomingRoute);
+      });
+      alreadyExistingVertex.reloadCenterLocation();
+    }
   }
 
   extractNearbySegments() {    
@@ -72,39 +146,20 @@ class GraphCreator {
         
         // We have to find a vertex this route is starting with.
         let startVertex = this.vertices.find((vertex) => vertex.id === route.startPointVertexId);
-        // Basing on the information if a given route is bidirectional: 
-        // - append prefixedRoute to outcoming routes of the start vertex of a general route.
-        // - append prefixedRoute to incoming and outcoming routes of the start vertex of a general route.
-        if (prefixedRoute.isBidirectional) {
-          startVertex.outcomingRoutes = startVertex.outcomingRoutes.concat(prefixedRoute);
-          startVertex.incomingRoutes = startVertex.incomingRoutes.concat(prefixedRoute);
-        } else {
-          startVertex.outcomingRoutes = startVertex.outcomingRoutes.concat(prefixedRoute);
-        }
+        // Append prefixedRoute to outcoming routes of the start vertex of a general route.
+        prefixedRoute.startPointVertexId = startVertex.id;
+        startVertex.outcomingRoutes = startVertex.outcomingRoutes.concat(prefixedRoute);
         // We have to find a vertex this route is ending with.
         let endVertex = this.vertices.find((vertex) => vertex.id === route.endPointVertexId);
-        // Basing on the information if a given route is bidirectional: 
-        // - append prefixedRoute to incoming routes of the start vertex of a general route.
-        // - append prefixedRoute to incoming and outcoming routes of the start vertex of a general route.
-        if (prefixedRoute.isBidirectional) {
-          endVertex.outcomingRoutes = startVertex.outcomingRoutes.concat(suffixedRoute);
-          endVertex.incomingRoutes = startVertex.incomingRoutes.concat(suffixedRoute);
-        } else {
-          endVertex.incomingRoutes = startVertex.outcomingRoutes.concat(suffixedRoute);
-        }
+        // Append prefixedRoute to incoming routes of the start vertex of a general route.
+        suffixedRoute.endPointVertexId = endVertex.id;
+        endVertex.incomingRoutes = startVertex.outcomingRoutes.concat(suffixedRoute);
         // Now we have to add prefixed and sufixed route to the current vertex.
-        // Basing on the information if a given route is bidirectional: 
-        // - append prefixed to incoming and sufixed to outcoming.
-        // - append prefixed to incoming and outcoming, append suffixed to incoming and outcoming.
-        if (route.isBidirectional) {
-          vertex.outcomingRoutes = vertex.outcomingRoutes.concat(prefixedRoute);
-          vertex.incomingRoutes = vertex.incomingRoutes.concat(prefixedRoute);
-          vertex.outcomingRoutes = vertex.outcomingRoutes.concat(suffixedRoute);
-          vertex.incomingRoutes = vertex.incomingRoutes.concat(suffixedRoute);
-        } else {
-          vertex.incomingRoutes = vertex.incomingRoutes.concat(prefixedRoute);
-          vertex.outcomingRoutes = vertex.outcomingRoutes.concat(suffixedRoute);
-        }
+        // Append prefixed to incoming and sufixed to outcoming.
+        prefixedRoute.endPointVertexId = vertex.id;
+        vertex.incomingRoutes = vertex.incomingRoutes.concat(prefixedRoute);
+        suffixedRoute.startPointVertexId = vertex.id;
+        vertex.outcomingRoutes = vertex.outcomingRoutes.concat(suffixedRoute);
       });
     });
   }
@@ -115,57 +170,7 @@ class GraphCreator {
       let incomingCloseToStart = this.findClosest(route, this.routes, desiredDistanceThreshold, SEARCH_INCOMING, searchType);
       let outcomingCloseToStart = this.findClosest(route, this.routes, desiredDistanceThreshold, SEARCH_OUTCOMING, searchType);
 
-      // Check if any of incoming routes already are correlated with an existing node.
-      // First create an array od routes that are already correlated with some vertex.
-      let alreadyCorrelatedIncoming = incomingCloseToStart.filter((incomingRoute) => {
-        return incomingRoute.markedEnd;
-      });
-      let alreadyCorrelatedOutcoming = outcomingCloseToStart.filter((outcomingRoute) => {
-        return outcomingRoute.markedStart;
-      });
-      // Than create an array of routes that should be added without abandoning exisitng node.
-      incomingCloseToStart = incomingCloseToStart.filter((incomingRoute) => {
-        return !incomingRoute.markedEnd;
-      });
-      outcomingCloseToStart = outcomingCloseToStart.filter((outcomingRoute) => {
-        return !outcomingRoute.markedStart;
-      });
-
-      // Handle routes that already belong to a vertex.
-      // First extract vertex ids for both types.
-      let correlatedIncomingVertexIds = alreadyCorrelatedIncoming.map((incomingRoute) => incomingRoute.endPointVertexId );
-      let correlatedOutcomingVertexIds = alreadyCorrelatedOutcoming.map((outcomingRoute) => outcomingRoute.startPointVertexId );
-
-      /// Than create an array of vertices that should be removed by concatenating both these arrays.
-      let verticesToRemove = correlatedIncomingVertexIds.concat(correlatedOutcomingVertexIds);
-
-      /// Than fetch all incoming and outcoming routes of the vertices that can be removed.
-      let extractedOutcomingFromVertices = verticesToRemove.map((id) => { 
-        return this.vertices.find((iteratedVertex) => iteratedVertex.id === id).outcomingNeighbors 
-      });
-      let extractedIncomingFromVertices = verticesToRemove.map((id) => { 
-        return this.vertices.find((iteratedVertex) => iteratedVertex.id === id).incomingNeighbors 
-      });
-
-      // Append the current arrays with all routes extracted from destroyed vertices.
-      incomingCloseToStart = incomingCloseToStart.concat(extractedIncomingFromVertices);
-      outcomingCloseToStart = outcomingCloseToStart.concat(extractedOutcomingFromVertices);
-
-      // Actually remove all the vertices that were replaced by the new ones.
-      this.vertices = this.vertices.filter((vertex) => {
-        return !verticesToRemove.includes(vertex.id);
-      });
-
-      // Create new vertex with all gathered data and append it to vertices prop.
-      const vertexId = uuidv4();
-      const vertex = new Vertex(vertexId, incomingCloseToStart, outcomingCloseToStart);
-      this.vertices.push(vertex);
-      incomingCloseToStart.forEach((incomingRoute) => {
-        incomingRoute.endPointVertexId = vertexId;
-      });
-      outcomingCloseToStart.forEach((outcomingRoute) => {
-        outcomingRoute.startPointVertexId = vertexId;
-      });
+      this.addSingleVertex(incomingCloseToStart, outcomingCloseToStart);
   }
 
   /**
