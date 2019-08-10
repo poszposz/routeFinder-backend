@@ -9,7 +9,7 @@ const SEARCH_AROUND_END = "SEARCH_AROUND_END";
 const SEARCH_INCOMING = "SEARCH_INCOMING";
 const SEARCH_OUTCOMING = "SEARCH_OUTCOMING";
 
-const desiredDistanceThreshold = 30;
+const desiredDistanceThreshold = 100;
 
 const routeNearVertexIgnoreDistance = 800;
 
@@ -39,10 +39,10 @@ class GraphCreator {
 
   assignBidirectional() {
     this.vertices.forEach((vertex) => {
-      // We find all bidirectiona routes coming in a nd out from a given vertex.
+      // We find all bidirectional routes coming in a nd out from a given vertex.
       const bidirectionalIncomingRoutes = vertex.incomingRoutes.filter((route) => route.bidirectional);
       const bidirectionalOutcomingRoutes = vertex.outcomingRoutes.filter((route) => route.bidirectional);
-
+      
       // We concatenate all incoming routes to outcoming routes and opposite.
       vertex.outcomingRoutes = vertex.outcomingRoutes.concat(bidirectionalIncomingRoutes);
       vertex.incomingRoutes = vertex.incomingRoutes.concat(bidirectionalOutcomingRoutes);
@@ -51,10 +51,12 @@ class GraphCreator {
       bidirectionalIncomingRoutes.forEach((route) => {
         let startingVertex = this.vertices.find((iteratedVertex) => iteratedVertex.id === route.startPointVertexId);
         startingVertex.outcomingRoutes.push(route);
+        startingVertex.incomingRoutes.push(route);
       });
       // And we do the same thing with the opposite.
       bidirectionalOutcomingRoutes.forEach((route) => {
         let endingVertex = this.vertices.find((iteratedVertex) => iteratedVertex.id === route.endPointVertexId);
+        endingVertex.outcomingRoutes.push(route);
         endingVertex.incomingRoutes.push(route);
       });
     });

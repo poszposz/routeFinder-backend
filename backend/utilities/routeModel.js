@@ -9,8 +9,12 @@ class Route {
     this.endPointVertexId = 0;
 
     this.name = name;
-    this.category = category;
-    this.bidirectional = this.category === 'cpr' | this.category === 'ddr' | this.category.includes('c16t22');
+    this.category = category === undefined ? "" : category;
+    // this.bidirectional = this.category === 'cpr' | this.category === 'ddr' | this.category.includes('c16t22');
+    // if (category === undefined) {
+    //   this.bidirectional = true;
+    // }
+    this.bidirectional = 1;
     let originalSegments = segments;
     this.segments = this.normalizeSegments(originalSegments);
     this.totalLength = this.segments.reduce((previous, next) => {

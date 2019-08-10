@@ -10,14 +10,29 @@ const client = axios.create({
   responseType: 'json',
 });
 
+function bikeRouteQuery(polygon) {
+  return `SELECT opis, kategoria, ST_AsGeoJson(the_geom) AS cords, ST_AsGeoJson(the_geom) AS cords, ST_AsText(the_geom_webmercator) AS createpoints FROM public.infrastruktura_rowerowa_06_2018 WHERE ST_Intersects(the_geom, ST_MakeEnvelope(${polygon.locationQuery()}, 4326))`;
+}
+
+function allRouteQuery(polygon) {
+  return `SELECT description as opis, ST_AsGeoJson(the_geom) AS cords, ST_AsText(the_geom_webmercator) AS createpoints FROM public.sugerowane_trasy WHERE ST_Intersects(the_geom, ST_MakeEnvelope(${polygon.locationQuery()}, 4326)) `;
+}
+
 async function downloadRestrictedGraph(start, end) {
   const polygon = new Polygon(start, end);
-  const query = `sql?q=SELECT opis, kategoria, ST_AsGeoJson(the_geom) AS cords, ST_AsGeoJson(the_geom) AS cords, ST_AsText(the_geom_webmercator) AS createpoints FROM public.infrastruktura_rowerowa_06_2018 WHERE ST_Intersects(the_geom, ST_MakeEnvelope(${polygon.locationQuery()}, 4326))`
-  const response = await client({
+  const bikeQuery = 'sql?q=' + bikeRouteQuery(polygon)
+  const bikeRouteresponse = await client({
     method: 'get',
-    url: query,
+    url: bikeQuery,
   });
-  return parseRoutes(response.data);
+  let bikeRoutes = parseRoutes(bikeRouteresponse.data);
+  const allRoutesQuery = 'sql?q=' + allRouteQuery(polygon)
+  const allRouteResponse = await client({
+    method: 'get',
+    url: allRoutesQuery,
+  });
+  let allRoutes = parseRoutes(allRouteResponse.data);
+  return bikeRoutes.concat(allRoutes);
 }
 
 async function downloadGraph() {
