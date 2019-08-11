@@ -57,6 +57,13 @@ class Route {
     return [prefixingSegments, suffixingSegments];
   }
 
+  reversed() {
+    let route = new Route(this.id, this.name, this.category, this.segments);
+    route.startPointVertexId = this.endPointVertexId;
+    route.endPointVertexId = this.startPointVertexId;
+    return route;
+  }
+
   debugDescription() {
     return {
       'id': this.id,

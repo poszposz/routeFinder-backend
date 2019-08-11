@@ -2,7 +2,7 @@ const axios = require('axios');
 
 const client = axios.create({
   baseURL: 'http://nominatim.openstreetmap.org/search',
-  timeout: 1000,
+  timeout: 10000,
   responseType: 'json',
 });
 
