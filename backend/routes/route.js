@@ -5,17 +5,7 @@ var Graph = require('../optimization/graph');
 var Dijkstra = require('../utilities/dijkstra');
 var router = express.Router();
 
-router.get('/find', async function(req, res, next) {
-  let { startLocation, endLocation } = req.query;
-  
-  if (startLocation === undefined) {
-    res.status(401);
-    res.render('error', { error: 'No start location provided.' });
-  }
-  if (endLocation === undefined) {
-    res.status(401);
-    res.render('error', { error: 'No end location provided.' });
-  }
+async function createGraph(startLocation, endLocation) {
   const decodedStartLocation = await decodeLocation(startLocation);
   const decodedEndLocation = await decodeLocation(endLocation);
 
@@ -23,7 +13,19 @@ router.get('/find', async function(req, res, next) {
   console.log(`Downloaded end location: ${JSON.stringify(decodedEndLocation)}`);
   
   const routes = await downloadService.downloadRestrictedGraph(decodedStartLocation.location, decodedEndLocation.location);
-  const graph = new Graph(routes);
+  return {
+    'graph': new Graph(routes),
+    decodedStartLocation,
+    decodedEndLocation,
+  }
+}
+
+router.get('/find', async function(req, res, next) {
+  let { startLocation, endLocation } = req.query;
+  const graphData = createGraph(startLocation, endLocation);
+  const graph = graphData.graph;
+  const decodedStartLocation = graphData.decodedStartLocation;
+  const decodedEndLocation = graphData.decodedEndLocation;
   const startVertex = graph.nearestStartVertex(decodedStartLocation.location);
   const endVertex = graph.nearestEndVertex(decodedEndLocation.location);
   console.log(`Nearest start vertex: ${startVertex.id}`);
@@ -43,23 +45,10 @@ router.get('/find', async function(req, res, next) {
 
 router.get('/findSimplifed', async function(req, res, next) {
   let { startLocation, endLocation } = req.query;
-  
-  if (startLocation === undefined) {
-    res.status(401);
-    res.render('error', { error: 'No start location provided.' });
-  }
-  if (endLocation === undefined) {
-    res.status(401);
-    res.render('error', { error: 'No end location provided.' });
-  }
-  const decodedStartLocation = await decodeLocation(startLocation);
-  const decodedEndLocation = await decodeLocation(endLocation);
-
-  console.log(`Downloaded start location: ${JSON.stringify(decodedStartLocation)}`);
-  console.log(`Downloaded end location: ${JSON.stringify(decodedEndLocation)}`);
-  
-  const routes = await downloadService.downloadRestrictedGraph(decodedStartLocation.location, decodedEndLocation.location);
-  const graph = new Graph(routes);
+  const graphData = createGraph(startLocation, endLocation);
+  const graph = graphData.graph;
+  const decodedStartLocation = graphData.decodedStartLocation;
+  const decodedEndLocation = graphData.decodedEndLocation;
   const startVertex = graph.nearestStartVertex(decodedStartLocation.location);
   const endVertex = graph.nearestEndVertex(decodedEndLocation.location);
   console.log(`Nearest start vertex: ${startVertex.id}`);
@@ -75,45 +64,17 @@ router.get('/findSimplifed', async function(req, res, next) {
 
 router.get('/restrictedArea', async function(req, res, next) {
   let { startLocation, endLocation } = req.query;
-  
-  if (startLocation === undefined) {
-    res.status(401);
-    res.render('error', { error: 'No start location provided.' });
-  }
-  if (endLocation === undefined) {
-    res.status(401);
-    res.render('error', { error: 'No end location provided.' });
-  }
-  const decodedStartLocation = await decodeLocation(startLocation);
-  const decodedEndLocation = await decodeLocation(endLocation);
-
-  console.log(`Downloaded start location: ${JSON.stringify(decodedStartLocation)}`);
-  console.log(`Downloaded end location: ${JSON.stringify(decodedEndLocation)}`);
-  
-  const routes = await downloadService.downloadRestrictedGraph(decodedStartLocation.location, decodedEndLocation.location);
-  const graph = new Graph(routes);
+  const graphData = createGraph(startLocation, endLocation);
+  const graph = graphData.graph;
   res.json(graph.generateGraphVisualization());
 });
 
 router.get('/dijkstraQuery', async function(req, res, next) {
   let { startLocation, endLocation } = req.query;
-  
-  if (startLocation === undefined) {
-    res.status(401);
-    res.render('error', { error: 'No start location provided.' });
-  }
-  if (endLocation === undefined) {
-    res.status(401);
-    res.render('error', { error: 'No end location provided.' });
-  }
-  const decodedStartLocation = await decodeLocation(startLocation);
-  const decodedEndLocation = await decodeLocation(endLocation);
-
-  console.log(`Downloaded start location: ${JSON.stringify(decodedStartLocation)}`);
-  console.log(`Downloaded end location: ${JSON.stringify(decodedEndLocation)}`);
-  
-  const routes = await downloadService.downloadRestrictedGraph(decodedStartLocation.location, decodedEndLocation.location);
-  const graph = new Graph(routes);
+  const graphData = createGraph(startLocation, endLocation);
+  const graph = graphData.graph;
+  const decodedStartLocation = graphData.decodedStartLocation;
+  const decodedEndLocation = graphData.decodedEndLocation;
   const startVertex = graph.nearestStartVertex(decodedStartLocation.location);
   const endVertex = graph.nearestEndVertex(decodedEndLocation.location);
   console.log(`Nearest start vertex: ${startVertex.id}`);
