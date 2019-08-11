@@ -30,9 +30,14 @@ class Vertex {
   generateOutcomingRoutes() {
     let transformedRoutes = {};
     this.outcomingRoutes.forEach((route) => {
+      if (route.endPointVertexId === this.id) { return; }
       transformedRoutes[`${route.endPointVertexId}`] = route.totalLength;
     });
     return transformedRoutes;
+  }
+
+  findRouteTo(endVertexId) {
+    return this.outcomingRoutes.find((route) => route.endPointVertexId === endVertexId);
   }
 
   debugDescription() {

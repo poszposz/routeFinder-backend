@@ -48,6 +48,18 @@ class Graph {
     return null;
   }
 
+  parseDijkstraResult(results) {
+    let count = 0;
+    return results.map((vertexId) => {
+      if (count === results.count - 2) { return null; }
+      let nextVertexId = results[count + 1];
+      let vertex = this.vertices.find((vertex) => vertex.id == vertexId);
+      let route = vertex.findRouteTo(nextVertexId);
+      count += 1;
+      return route;
+    }).filter((route) => route !== null);
+  }
+
   debugDescription() {
     let transformedGraph = {};
     this.vertices.forEach((vertex) => {
