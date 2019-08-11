@@ -27,8 +27,8 @@ async function decodeLocation(location) {
   return {
     displayName: locationData['display_name'],
     location: {
-      latitude: locationData['lat'],
-      longitude: locationData['lon'],
+      latitude: parseFloat(locationData['lat']),
+      longitude: parseFloat(locationData['lon']),
     }
   };
 }

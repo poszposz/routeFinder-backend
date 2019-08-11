@@ -57,7 +57,7 @@ class Graph {
       let route = vertex.findRouteTo(nextVertexId);
       count += 1;
       return route;
-    }).filter((route) => route !== null);
+    }).filter((route) => route != null);
   }
 
   debugDescription() {

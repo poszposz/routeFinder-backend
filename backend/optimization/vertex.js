@@ -37,7 +37,7 @@ class Vertex {
   }
 
   findRouteTo(endVertexId) {
-    return this.outcomingRoutes.find((route) => route.endPointVertexId === endVertexId);
+    return this.outcomingRoutes.find((route) => route.endPointVertexId == endVertexId);
   }
 
   debugDescription() {

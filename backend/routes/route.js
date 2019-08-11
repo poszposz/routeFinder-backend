@@ -13,8 +13,9 @@ async function createGraph(startLocation, endLocation) {
   console.log(`Downloaded end location: ${JSON.stringify(decodedEndLocation)}`);
   
   const routes = await downloadService.downloadRestrictedGraph(decodedStartLocation.location, decodedEndLocation.location);
+  const graph = new Graph(routes);
   return {
-    'graph': new Graph(routes),
+    graph,
     decodedStartLocation,
     decodedEndLocation,
   }
@@ -22,7 +23,7 @@ async function createGraph(startLocation, endLocation) {
 
 router.get('/find', async function(req, res, next) {
   let { startLocation, endLocation } = req.query;
-  const graphData = createGraph(startLocation, endLocation);
+  const graphData = await createGraph(startLocation, endLocation);
   const graph = graphData.graph;
   const decodedStartLocation = graphData.decodedStartLocation;
   const decodedEndLocation = graphData.decodedEndLocation;
@@ -36,8 +37,8 @@ router.get('/find', async function(req, res, next) {
   const shortestRoute = dijkstra.findShortestPath(`${startVertex.id}`, `${endVertex.id}`);
   const combined = graph.parseDijkstraResult(shortestRoute);
   let response = {
-    'start': decodedStartLocation,
-    'end': decodedEndLocation,
+    'startLocation': decodedStartLocation,
+    'endLocation': decodedEndLocation,
     'routes': combined,
   }
   res.json(response);
@@ -45,7 +46,7 @@ router.get('/find', async function(req, res, next) {
 
 router.get('/findSimplifed', async function(req, res, next) {
   let { startLocation, endLocation } = req.query;
-  const graphData = createGraph(startLocation, endLocation);
+  const graphData = await createGraph(startLocation, endLocation);
   const graph = graphData.graph;
   const decodedStartLocation = graphData.decodedStartLocation;
   const decodedEndLocation = graphData.decodedEndLocation;
@@ -64,14 +65,14 @@ router.get('/findSimplifed', async function(req, res, next) {
 
 router.get('/restrictedArea', async function(req, res, next) {
   let { startLocation, endLocation } = req.query;
-  const graphData = createGraph(startLocation, endLocation);
+  const graphData = await createGraph(startLocation, endLocation);
   const graph = graphData.graph;
   res.json(graph.generateGraphVisualization());
 });
 
 router.get('/dijkstraQuery', async function(req, res, next) {
   let { startLocation, endLocation } = req.query;
-  const graphData = createGraph(startLocation, endLocation);
+  const graphData = await createGraph(startLocation, endLocation);
   const graph = graphData.graph;
   const decodedStartLocation = graphData.decodedStartLocation;
   const decodedEndLocation = graphData.decodedEndLocation;
