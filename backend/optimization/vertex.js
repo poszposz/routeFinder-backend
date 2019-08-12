@@ -40,6 +40,30 @@ class Vertex {
     return this.outcomingRoutes.find((route) => route.endPointVertexId == endVertexId);
   }
 
+  addIncomingRoutes(routes) {
+    const foundRoutes = routes.filter((route) => {
+      const foundRoute = this.incomingRoutes.find((incomingRoute) => {
+        return route.id === incomingRoute.id;
+      });
+      return foundRoute === undefined;
+    });
+    if (foundRoutes.length === 0) { return; }
+    this.incomingRoutes = this.incomingRoutes.concat(foundRoutes);
+    console.log(`Incoming routes count: ${this.incomingRoutes.length}`);
+  }
+
+  addOutcomingRoutes(routes) {
+    const foundRoutes = routes.filter((route) => {
+      const foundRoute = this.outcomingRoutes.find((outcomingRoute) => {
+        return route.id === outcomingRoute.id;
+      });
+      return foundRoute === undefined;
+    });
+    if (foundRoutes.length === 0) { return; }
+    this.outcomingRoutes = this.outcomingRoutes.concat(foundRoutes);
+    console.log(`Outcoming routes count: ${this.outcomingRoutes.length}`);
+  }
+
   debugDescription() {
     let incoming = []
     let outcoming = []

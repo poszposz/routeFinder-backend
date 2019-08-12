@@ -44,20 +44,20 @@ class GraphCreator {
       const bidirectionalOutcomingRoutes = vertex.outcomingRoutes.filter((route) => route.bidirectional);
       
       // We concatenate all incoming routes to outcoming routes and opposite.
-      vertex.outcomingRoutes = vertex.outcomingRoutes.concat(bidirectionalIncomingRoutes.map((route) => route.reversed()));
-      vertex.incomingRoutes = vertex.incomingRoutes.concat(bidirectionalOutcomingRoutes.map((route) => route.reversed()));
+      vertex.addOutcomingRoutes(bidirectionalIncomingRoutes.map((route) => route.reversed()));
+      vertex.addIncomingRoutes(bidirectionalOutcomingRoutes.map((route) => route.reversed()));
 
       // For all bidirectional incoming routes we iterate, find starting vertex and add their begginings as outcoming to the start vertex.
       bidirectionalIncomingRoutes.forEach((route) => {
         let startingVertex = this.vertices.find((iteratedVertex) => iteratedVertex.id === route.startPointVertexId);
-        startingVertex.incomingRoutes.push(route.reversed());
-        startingVertex.outcomingRoutes.push(route);
+        startingVertex.addIncomingRoutes([route.reversed()]);
+        startingVertex.addOutcomingRoutes([route]);
       });
       // And we do the same thing with the opposite.
       bidirectionalOutcomingRoutes.forEach((route) => {
         let endingVertex = this.vertices.find((iteratedVertex) => iteratedVertex.id === route.endPointVertexId);
-        endingVertex.incomingRoutes.push(route.reversed());
-        endingVertex.outcomingRoutes.push(route);
+        endingVertex.addIncomingRoutes([route.reversed()]);
+        endingVertex.addOutcomingRoutes([route]);
       });
     });
   }
@@ -103,14 +103,14 @@ class GraphCreator {
         const alreadyExisitngIncomingRoute = alreadyExistingVertex.incomingRoutes.find((incomingVertexRoute) => incomingVertexRoute.id === incomingRoute.id);
         if (alreadyExisitngIncomingRoute !== undefined) { return; }
         incomingRoute.endPointVertexId = alreadyExistingVertex.id;
-        alreadyExistingVertex.incomingRoutes.push(incomingRoute);
+        alreadyExistingVertex.addIncomingRoutes([incomingRoute]);
       });
 
       outcomingRoutes.forEach((outcomingRoute) => {
         const alreadyExisitngOutcomingRoute = alreadyExistingVertex.outcomingRoutes.find((outcomingVertexRoute) => outcomingVertexRoute.id === outcomingRoutes.id);
         if (alreadyExisitngOutcomingRoute !== undefined) { return; }
         outcomingRoute.startPointVertexId = alreadyExistingVertex.id;
-        alreadyExistingVertex.outcomingRoutes.push(outcomingRoute);
+        alreadyExistingVertex.addOutcomingRoutes([outcomingRoute]);
       });
       alreadyExistingVertex.reloadCenterLocation();
     }
@@ -159,9 +159,9 @@ class GraphCreator {
         // Now we have to add prefixed and sufixed route to the current vertex.
         // Append prefixed to incoming and sufixed to outcoming.
         prefixedRoute.endPointVertexId = vertex.id;
-        vertex.incomingRoutes = vertex.incomingRoutes.concat(prefixedRoute);
+        vertex.addIncomingRoutes([prefixedRoute]);
         suffixedRoute.startPointVertexId = vertex.id;
-        vertex.outcomingRoutes = vertex.outcomingRoutes.concat(suffixedRoute);
+        vertex.addIncomingRoutes([suffixedRoute]);
       });
     });
   }

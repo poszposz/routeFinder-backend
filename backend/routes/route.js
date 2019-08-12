@@ -36,6 +36,8 @@ router.get('/find', async function(req, res, next) {
   const dijkstra = new Dijkstra(query);
   const shortestRoute = dijkstra.findShortestPath(`${startVertex.id}`, `${endVertex.id}`);
   const combined = graph.parseDijkstraResult(shortestRoute);
+  console.log(`All routes: ${combined.map((route) => JSON.stringify(route.debugDescription()))}`);
+  
   let response = {
     'startLocation': decodedStartLocation,
     'endLocation': decodedEndLocation,
