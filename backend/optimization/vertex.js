@@ -42,6 +42,7 @@ class Vertex {
 
   addIncomingRoutes(routes) {
     const foundRoutes = routes.filter((route) => {
+      if (route.startPointVertexId === this.id & route.endPointVertexId === this.id) { return false; }
       const foundRoute = this.incomingRoutes.find((incomingRoute) => {
         return route.id === incomingRoute.id;
       });
@@ -53,6 +54,7 @@ class Vertex {
 
   addOutcomingRoutes(routes) {
     const foundRoutes = routes.filter((route) => {
+      if (route.startPointVertexId === this.id & route.endPointVertexId === this.id) { return false; }
       const foundRoute = this.outcomingRoutes.find((outcomingRoute) => {
         return route.id === outcomingRoute.id;
       });
