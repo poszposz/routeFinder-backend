@@ -49,7 +49,6 @@ class Vertex {
     });
     if (foundRoutes.length === 0) { return; }
     this.incomingRoutes = this.incomingRoutes.concat(foundRoutes);
-    console.log(`Incoming routes count: ${this.incomingRoutes.length}`);
   }
 
   addOutcomingRoutes(routes) {
@@ -61,7 +60,6 @@ class Vertex {
     });
     if (foundRoutes.length === 0) { return; }
     this.outcomingRoutes = this.outcomingRoutes.concat(foundRoutes);
-    console.log(`Outcoming routes count: ${this.outcomingRoutes.length}`);
   }
 
   debugDescription() {
