@@ -1,4 +1,9 @@
 require('../extensions/array');
+const uuidv4 = require('./UUIDGenerator');
+
+const longestRouteAllowed = 500;
+
+const maximumSegmentLength = 40;
 
 class Route {
 
@@ -26,11 +31,11 @@ class Route {
 
   normalizeSegments(segments) {
     return segments.map((segment) => {
-      if (segment.length <= 40) {
+      if (segment.length <= maximumSegmentLength) {
         return segment;
       }
       let segments = segment.split();
-      while (segments[0].length > 40) {
+      while (segments[0].length > maximumSegmentLength) {
         let reduced = segments.map((smallerSegment) => {
           return smallerSegment.split();
         }).flatten();
@@ -38,6 +43,16 @@ class Route {
       };
       return segments;
     }).flatten();
+  }
+
+  split() {
+    if (this.totalLength < longestRouteAllowed) { return this; }
+    const maximumSegmentsPerRoute = longestRouteAllowed / maximumSegmentLength;
+    let segments = this.segments.chunk(maximumSegmentsPerRoute);
+    return segments.map((segmentChunk) => {
+      let route = new Route(uuidv4(), this.name, this.category, segmentChunk);
+      return route;
+    });
   }
 
   splitBy(segment) {
@@ -70,11 +85,11 @@ class Route {
 
   debugDescription() {
     return {
-      // 'id': this.id,
-      // 'name': this.name,
+      'id': this.id,
+      'name': this.name,
       'start': this.startPointVertexId,
       'end': this.endPointVertexId,
-      // 'length': this.totalLength,
+      'length': this.totalLength,
     }
   }
 }
