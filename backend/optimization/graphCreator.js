@@ -9,7 +9,7 @@ const SEARCH_AROUND_END = "SEARCH_AROUND_END";
 const SEARCH_INCOMING = "SEARCH_INCOMING";
 const SEARCH_OUTCOMING = "SEARCH_OUTCOMING";
 
-const desiredDistanceThreshold = 100;
+const desiredDistanceThreshold = 30;
 
 const routeNearVertexIgnoreDistance = 800;
 
@@ -46,19 +46,6 @@ class GraphCreator {
       // We concatenate all incoming routes to outcoming routes and opposite.
       vertex.addOutcomingRoutes(bidirectionalIncomingRoutes.map((route) => route.reversed()));
       vertex.addIncomingRoutes(bidirectionalOutcomingRoutes.map((route) => route.reversed()));
-
-      // For all bidirectional incoming routes we iterate, find starting vertex and add their begginings as outcoming to the start vertex.
-      bidirectionalIncomingRoutes.forEach((route) => {
-        let startingVertex = this.vertices.find((iteratedVertex) => iteratedVertex.id === route.startPointVertexId);
-        startingVertex.addIncomingRoutes([route.reversed()]);
-        startingVertex.addOutcomingRoutes([route]);
-      });
-      // And we do the same thing with the opposite.
-      bidirectionalOutcomingRoutes.forEach((route) => {
-        let endingVertex = this.vertices.find((iteratedVertex) => iteratedVertex.id === route.endPointVertexId);
-        endingVertex.addIncomingRoutes([route.reversed()]);
-        endingVertex.addOutcomingRoutes([route]);
-      });
     });
   }
 
@@ -100,15 +87,11 @@ class GraphCreator {
       });
     } else {
       incomingRoutes.forEach((incomingRoute) => {
-        const alreadyExisitngIncomingRoute = alreadyExistingVertex.incomingRoutes.find((incomingVertexRoute) => incomingVertexRoute.id === incomingRoute.id);
-        if (alreadyExisitngIncomingRoute !== undefined) { return; }
         incomingRoute.endPointVertexId = alreadyExistingVertex.id;
         alreadyExistingVertex.addIncomingRoutes([incomingRoute]);
       });
 
       outcomingRoutes.forEach((outcomingRoute) => {
-        const alreadyExisitngOutcomingRoute = alreadyExistingVertex.outcomingRoutes.find((outcomingVertexRoute) => outcomingVertexRoute.id === outcomingRoutes.id);
-        if (alreadyExisitngOutcomingRoute !== undefined) { return; }
         outcomingRoute.startPointVertexId = alreadyExistingVertex.id;
         alreadyExistingVertex.addOutcomingRoutes([outcomingRoute]);
       });
@@ -121,6 +104,8 @@ class GraphCreator {
     // We have to iterate through all routes and for each of them find a segment that is closest to the vertex.
     this.vertices.forEach((vertex) => {
       this.routes.forEach((route) => {
+        // We ignore all the routes that starts or ends in currently iterated vertex.
+        if (route.startPointVertexId === vertex.id | route.endPointVertexId === vertex.id) { return; }
         // We eliminate all routes that are incoming or outcoming from a currently iterated vertex.
         // They can have very short first segments and create false data.
         const outcomingRouteIds = vertex.outcomingRoutes.map((route) => route.id );
@@ -139,29 +124,29 @@ class GraphCreator {
         if (eligibleSegment === undefined) { return; }
         // We split the currently iterated route via given segment.
         let splitted = route.splitBy(eligibleSegment);
-        let prefixedSegments = splitted[0];
-        let suffixedSegments = splitted[1];
+        let prefixedSegments = splitted[1];
+        let suffixedSegments = splitted[0];
         if (prefixedSegments.length === 0 | suffixedSegments.length === 0) { return; }
         // We have to create two routes from prefixed and suffixed segments.
         let prefixedRoute = new Route(uuidv4(), route.name, route.category, prefixedSegments);
         let suffixedRoute = new Route(uuidv4(), route.name, route.category, suffixedSegments);
+        // To that point all should be good.
         
-        // We have to find a vertex this route is starting with.
+        // We have to find a vertices this route is starting and ending with.
         let startVertex = this.vertices.find((vertex) => vertex.id === route.startPointVertexId);
-        // Append prefixedRoute to outcoming routes of the start vertex of a general route.
-        prefixedRoute.startPointVertexId = startVertex.id;
-        startVertex.outcomingRoutes = startVertex.outcomingRoutes.concat(prefixedRoute);
-        // We have to find a vertex this route is ending with.
         let endVertex = this.vertices.find((vertex) => vertex.id === route.endPointVertexId);
-        // Append prefixedRoute to incoming routes of the start vertex of a general route.
-        suffixedRoute.endPointVertexId = endVertex.id;
-        endVertex.incomingRoutes = startVertex.outcomingRoutes.concat(suffixedRoute);
-        // Now we have to add prefixed and sufixed route to the current vertex.
-        // Append prefixed to incoming and sufixed to outcoming.
+
+        // We assign properly the starting and endings for prefixed and suffixed routes.
+        prefixedRoute.startPointVertexId = startVertex.id;
         prefixedRoute.endPointVertexId = vertex.id;
-        vertex.addIncomingRoutes([prefixedRoute]);
         suffixedRoute.startPointVertexId = vertex.id;
-        vertex.addIncomingRoutes([suffixedRoute]);
+        suffixedRoute.endPointVertexId = endVertex.id;
+
+        // We properly add the newly created routes to starting, ending and middle vertices.
+        startVertex.addOutcomingRoutes([prefixedRoute]);
+        endVertex.addIncomingRoutes([suffixedRoute]);
+        vertex.addIncomingRoutes([prefixedRoute]);
+        vertex.addOutcomingRoutes([suffixedRoute]);
       });
     });
   }
@@ -169,8 +154,8 @@ class GraphCreator {
   pushVertex(route, searchType) {
       // Procedure for route starting vertex.
       // Performs search for all other routes that start nearby the given route.
-      let incomingCloseToStart = this.findClosest(route, this.routes, desiredDistanceThreshold, SEARCH_INCOMING, searchType);
-      let outcomingCloseToStart = this.findClosest(route, this.routes, desiredDistanceThreshold, SEARCH_OUTCOMING, searchType);
+      let incomingCloseToStart = this.findClosest(route, this.routes, desiredDistanceThreshold, SEARCH_INCOMING, searchType);//.map((route) => route.copy());
+      let outcomingCloseToStart = this.findClosest(route, this.routes, desiredDistanceThreshold, SEARCH_OUTCOMING, searchType);//.map((route) => route.copy());
 
       this.addSingleVertex(incomingCloseToStart, outcomingCloseToStart);
   }
