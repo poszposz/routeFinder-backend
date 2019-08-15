@@ -3,6 +3,7 @@ var downloadService = require('../utilities/routeDownloadService');
 var express = require('express');
 var Graph = require('../optimization/graph');
 var Dijkstra = require('../utilities/dijkstra');
+var mergeRoutes = require('../utilities/routeCreator');
 var router = express.Router();
 
 async function createGraph(startLocation, endLocation) {
@@ -23,27 +24,31 @@ async function createGraph(startLocation, endLocation) {
 
 router.get('/find', async function(req, res, next) {
   let { startLocation, endLocation } = req.query;
-  const graphData = await createGraph(startLocation, endLocation);
-  const graph = graphData.graph;
-  const decodedStartLocation = graphData.decodedStartLocation;
-  const decodedEndLocation = graphData.decodedEndLocation;
-  const startVertex = graph.nearestStartVertex(decodedStartLocation.location);
-  const endVertex = graph.nearestEndVertex(decodedEndLocation.location);
-  console.log(`Nearest start vertex: ${startVertex.id}`);
-  console.log(`Nearest end vertex: ${endVertex.id}`);
+  try {
+    const graphData = await createGraph(startLocation, endLocation);
+    const graph = graphData.graph;
+    const decodedStartLocation = graphData.decodedStartLocation;
+    const decodedEndLocation = graphData.decodedEndLocation;
+    const startVertex = graph.nearestStartVertex(decodedStartLocation.location);
+    const endVertex = graph.nearestEndVertex(decodedEndLocation.location);
+    console.log(`Nearest start vertex: ${startVertex.id}`);
+    console.log(`Nearest end vertex: ${endVertex.id}`);
   
-  const query = graph.generateDijkstraQuery();
-  const dijkstra = new Dijkstra(query);
-  const shortestRoute = dijkstra.findShortestPath(`${startVertex.id}`, `${endVertex.id}`);
-  const combined = graph.parseDijkstraResult(shortestRoute);
-  console.log(`All routes: ${combined.map((route) => JSON.stringify(route.debugDescription()))}`);
-  
-  let response = {
-    'startLocation': decodedStartLocation,
-    'endLocation': decodedEndLocation,
-    'routes': combined,
+    const query = graph.generateDijkstraQuery();
+    const dijkstra = new Dijkstra(query);
+    const shortestRoute = dijkstra.findShortestPath(`${startVertex.id}`, `${endVertex.id}`);
+    const combined = graph.parseDijkstraResult(shortestRoute);
+    const combinedMerged = mergeRoutes(combined);
+    let response = {
+      'startLocation': decodedStartLocation,
+      'endLocation': decodedEndLocation,
+      'routes': combinedMerged,
+    };
+    res.json(response);
+  } catch (error) {
+    console.log(`Error: ${error}`);
+    next(error);
   }
-  res.json(response);
 });
 
 router.get('/findSimplifed', async function(req, res, next) {

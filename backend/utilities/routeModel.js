@@ -1,13 +1,13 @@
 require('../extensions/array');
 const uuidv4 = require('./UUIDGenerator');
 
-const longestRouteAllowed = 500;
+const longestRouteAllowed = 300;
 
 const maximumSegmentLength = 40;
 
 class Route {
 
-  constructor(id, name, category, segments) {
+  constructor(id, name, category, segments, shouldNormalizeSegments = true) {
     this.id = id;
 
     this.startPointVertexId = 0;
@@ -15,13 +15,13 @@ class Route {
 
     this.name = name;
     this.category = category === undefined ? "" : category;
-    // this.bidirectional = this.category === 'cpr' | this.category === 'ddr' | this.category.includes('c16t22');
-    // if (category === undefined) {
-    //   this.bidirectional = true;
-    // }
     this.bidirectional = 1;
     let originalSegments = segments;
-    this.segments = this.normalizeSegments(originalSegments);
+    if (shouldNormalizeSegments) {
+      this.segments = this.normalizeSegments(originalSegments);
+    } else {
+      this.segments = originalSegments;
+    }
     this.totalLength = this.segments.reduce((previous, next) => {
       return previous + next.length;
     }, 0);
@@ -73,9 +73,11 @@ class Route {
   }
 
   reversed() {
-    let route = new Route(this.id, this.name, this.category, this.segments);
+    let route = new Route(this.id, this.name, this.category, this.segments.reverse());
     route.startPointVertexId = this.endPointVertexId;
     route.endPointVertexId = this.startPointVertexId;
+    route.start = this.end;
+    route.end = this.start;
     return route;
   }
 
