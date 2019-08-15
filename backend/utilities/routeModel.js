@@ -3,7 +3,7 @@ const uuidv4 = require('./UUIDGenerator');
 
 const longestRouteAllowed = 300;
 
-const maximumSegmentLength = 40;
+const maximumSegmentLength = 20;
 
 class Route {
 
@@ -45,6 +45,12 @@ class Route {
     }).flatten();
   }
 
+  adjustEndings() {
+    if (this.segments.length === 0) { return; }
+    this.start = this.segments[0].start;
+    this.end = this.segments[this.segments.length - 1].end;
+  }
+
   split() {
     if (this.totalLength < longestRouteAllowed) { return this; }
     const maximumSegmentsPerRoute = longestRouteAllowed / maximumSegmentLength;
@@ -73,11 +79,10 @@ class Route {
   }
 
   reversed() {
-    let route = new Route(this.id, this.name, this.category, this.segments.reverse());
+    let newSegments = this.segments.map((segment) => segment.reversed()).concat().reverse();
+    let route = new Route(this.id, this.name, this.category, newSegments);
     route.startPointVertexId = this.endPointVertexId;
     route.endPointVertexId = this.startPointVertexId;
-    route.start = this.end;
-    route.end = this.start;
     return route;
   }
 

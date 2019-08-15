@@ -3,7 +3,7 @@ var downloadService = require('../utilities/routeDownloadService');
 var express = require('express');
 var Graph = require('../optimization/graph');
 var Dijkstra = require('../utilities/dijkstra');
-var mergeRoutes = require('../utilities/routeCreator');
+var routeCreator = require('../utilities/routeCreator');
 var router = express.Router();
 
 async function createGraph(startLocation, endLocation) {
@@ -38,7 +38,9 @@ router.get('/find', async function(req, res, next) {
     const dijkstra = new Dijkstra(query);
     const shortestRoute = dijkstra.findShortestPath(`${startVertex.id}`, `${endVertex.id}`);
     const combined = graph.parseDijkstraResult(shortestRoute);
-    const combinedMerged = mergeRoutes(combined);
+    let stripped = routeCreator.stripUnrelevantStartingSegments(combined);
+    stripped = routeCreator.stripUnrelevantEndingSegments(combined);
+    const combinedMerged = routeCreator.mergeRoutes(stripped);
     let response = {
       'startLocation': decodedStartLocation,
       'endLocation': decodedEndLocation,
