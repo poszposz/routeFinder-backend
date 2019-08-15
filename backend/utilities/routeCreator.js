@@ -42,11 +42,7 @@ function relevantEndSegments(route, nextRoute) {
     return distanceCalculation.distanceBetweenLocations(start, segment2.end) - distanceCalculation.distanceBetweenLocations(start, segment1.end);
   });
   let nearest = sortedSegments[0];
-  console.log(`Nearest: ${JSON.stringify(nearest)}`);
   let nearestSegmentIndex = route.segments.findIndex((segment) => segment.id === nearest.id);
-  console.log(`Nearest segment index: ${nearestSegmentIndex}`);
-  console.log(`Segments count: ${route.segments.length}`);
-
   return route.segments.slice(0, nearestSegmentIndex);
 }
 
