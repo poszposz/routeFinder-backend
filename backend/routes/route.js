@@ -41,8 +41,8 @@ router.get('/find', async function(req, res, next) {
     const decodedEndLocation = graphData.decodedEndLocation;
     const possibleStartVertices = graph.nearestStartVertices(decodedStartLocation.location);
     const possibleEndVertices = graph.nearestEndVertices(decodedEndLocation.location);
-    console.log(`Nearest start vertices: ${possibleStartVertices.map(vertex => vertex.id)}`);
-    console.log(`Nearest end vertices: ${possibleEndVertices.map(vertex => vertex.id)}`);
+    console.log(`Nearest start vertices: ${possibleStartVertices.map(vertexData => vertexData.vertex.id)}`);
+    console.log(`Nearest end vertices: ${possibleEndVertices.map(vertexData => vertexData.vertex.id)}`);
     
     let bestNavigationRoute;
     possibleStartVertices.forEach((startVertexData) => {
