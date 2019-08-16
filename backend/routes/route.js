@@ -3,6 +3,7 @@ var downloadService = require('../utilities/routeDownloadService');
 var express = require('express');
 var Graph = require('../optimization/graph');
 var Dijkstra = require('../utilities/dijkstra');
+var NavigationRoute = require('../utilities/navigationRoute');
 var routeCreator = require('../utilities/routeCreator');
 var router = express.Router();
 
@@ -43,44 +44,35 @@ router.get('/find', async function(req, res, next) {
     console.log(`Nearest start vertices: ${possibleStartVertices.map(vertex => vertex.id)}`);
     console.log(`Nearest end vertices: ${possibleEndVertices.map(vertex => vertex.id)}`);
     
-    let currentBestLenght = Infinity;
-    let bestStartVertex;
-    let bestEndVertex;
-    let bestRoute;
-    possibleStartVertices.forEach((startVertex) => {
-      possibleEndVertices.forEach((endVertex) => {
+    let bestNavigationRoute;
+    possibleStartVertices.forEach((startVertexData) => {
+      possibleEndVertices.forEach((endVertexData) => {
         const query = graph.generateDijkstraQuery();
         const dijkstra = new Dijkstra(query);
-        const shortestRoute = dijkstra.findShortestPath(`${startVertex.id}`, `${endVertex.id}`);
-        // console.log(`Found route: ${shortestRoute}`);
+        const shortestRoute = dijkstra.findShortestPath(`${startVertexData.vertex.id}`, `${endVertexData.vertex.id}`);
         if (shortestRoute === null) {
           return;
         }
         const combined = graph.parseDijkstraResult(shortestRoute);
-        const totalLength = routeCreator.totalLength(combined);
-        if (bestRoute === undefined) {
-          currentBestLenght = totalLength;
-          bestRoute = combined;
-          bestStartVertex = startVertex;
-          bestEndVertex = endVertex;
-        } else if (totalLength < currentBestLenght & !routeCreator.isSubset(bestRoute, combined)) {
-          currentBestLenght = totalLength;
-          bestRoute = combined;
-          bestStartVertex = startVertex;
-          bestEndVertex = endVertex;
+        let navigationRoute = new NavigationRoute(decodedStartLocation, decodedEndLocation, startVertexData.vertex, endVertexData.vertex, combined);
+        if (bestNavigationRoute === undefined) {
+          bestNavigationRoute = navigationRoute;
+        } else if (navigationRoute.totalWeight < bestNavigationRoute.totalWeight) {
+          bestNavigationRoute = navigationRoute;
         }
       });
     });
-    console.log(`Best start vertex: ${bestStartVertex.id}`);
-    console.log(`Nearest end vertices: ${bestEndVertex.id}`);
+    console.log(`Best start vertex: ${bestNavigationRoute.startVertex.id}`);
+    console.log(`Nearest end vertices: ${bestNavigationRoute.endVertex.id}`);
 
-    let stripped = routeCreator.stripUnrelevantStartingSegments(bestRoute);
+    let stripped = routeCreator.stripUnrelevantStartingSegments(bestNavigationRoute.routes);
     stripped = routeCreator.stripUnrelevantEndingSegments(stripped);
     const combinedMerged = routeCreator.mergeRoutes(stripped);
+
     let response = {
       'startLocation': decodedStartLocation,
       'endLocation': decodedEndLocation,
-      'totalLength': currentBestLenght,
+      'totalLength': bestNavigationRoute.totalLength,
       'routes': combinedMerged,
     };
     res.json(response);
@@ -100,45 +92,36 @@ router.get('/findOptimized', async function(req, res, next) {
     const possibleEndVertices = graph.nearestEndVertices(decodedEndLocation.location);
     console.log(`Nearest start vertices: ${possibleStartVertices.map(vertex => vertex.id)}`);
     console.log(`Nearest end vertices: ${possibleEndVertices.map(vertex => vertex.id)}`);
-    
-    let currentBestLenght = Infinity;
-    let bestStartVertex;
-    let bestEndVertex;
-    let bestRoute;
-    possibleStartVertices.forEach((startVertex) => {
-      possibleEndVertices.forEach((endVertex) => {
+  
+    let bestNavigationRoute;
+    possibleStartVertices.forEach((startVertexData) => {
+      possibleEndVertices.forEach((endVertexData) => {
         const query = graph.generateDijkstraQuery();
         const dijkstra = new Dijkstra(query);
-        const shortestRoute = dijkstra.findShortestPath(`${startVertex.id}`, `${endVertex.id}`);
-        // console.log(`Found route: ${shortestRoute}`);
+        const shortestRoute = dijkstra.findShortestPath(`${startVertexData.vertex.id}`, `${endVertexData.vertex.id}`);
         if (shortestRoute === null) {
           return;
         }
         const combined = graph.parseDijkstraResult(shortestRoute);
-        const totalLength = routeCreator.totalLength(combined);
-        if (bestRoute === undefined) {
-          currentBestLenght = totalLength;
-          bestRoute = combined;
-          bestStartVertex = startVertex;
-          bestEndVertex = endVertex;
-        } else if (totalLength < currentBestLenght & !routeCreator.isSubset(bestRoute, combined)) {
-          currentBestLenght = totalLength;
-          bestRoute = combined;
-          bestStartVertex = startVertex;
-          bestEndVertex = endVertex;
+        let navigationRoute = new NavigationRoute(decodedStartLocation, decodedEndLocation, startVertexData.vertex, endVertexData.vertex, combined);
+        if (bestNavigationRoute === undefined) {
+          bestNavigationRoute = navigationRoute;
+        } else if (navigationRoute.totalWeight < bestNavigationRoute.totalWeight) {
+          bestNavigationRoute = navigationRoute;
         }
       });
     });
-    console.log(`Best start vertex: ${bestStartVertex.id}`);
-    console.log(`Nearest end vertices: ${bestEndVertex.id}`);
+    console.log(`Best start vertex: ${bestNavigationRoute.startVertex.id}`);
+    console.log(`Nearest end vertices: ${bestNavigationRoute.endVertex.id}`);
 
-    let stripped = routeCreator.stripUnrelevantStartingSegments(bestRoute);
+    let stripped = routeCreator.stripUnrelevantStartingSegments(bestNavigationRoute.routes);
     stripped = routeCreator.stripUnrelevantEndingSegments(stripped);
     const combinedMerged = routeCreator.mergeRoutes(stripped);
+
     let response = {
       'startLocation': decodedStartLocation,
       'endLocation': decodedEndLocation,
-      'totalLength': currentBestLenght,
+      'totalLength': bestNavigationRoute.totalLength,
       'routes': combinedMerged,
     };
     res.json(response);

@@ -46,7 +46,13 @@ class Graph {
     });
     if (sorted.length > 0) {
       let best = sorted[0];
-      return sorted.filter((vertex) => distanceCalculation.distanceBetweenLocations(best.centerLocation, vertex.centerLocation) < maximumVertexSearchRadius);
+      let filtered = sorted.filter((vertex) => distanceCalculation.distanceBetweenLocations(best.centerLocation, vertex.centerLocation) < maximumVertexSearchRadius);
+      return filtered.map((vertex) => {
+        return {
+          'vertex': vertex,
+          'reachDistance': distanceCalculation.distanceBetweenLocations(vertex.centerLocation, location) 
+        };
+      });
     }
     return null;
   }
