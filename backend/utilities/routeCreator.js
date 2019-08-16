@@ -79,8 +79,19 @@ function mergeRoutes(routes) {
   return mergedRoutes;
 }
 
+function isSubset(mainRouteDijkstraArray, routeDijkstraArray) {
+  let isSubset = routeDijkstraArray.every(element => mainRouteDijkstraArray.includes(element));
+  return isSubset;
+}
+
+function totalLength(routes) {
+  return routes.reduce(((currentTotal, route) => currentTotal + route.totalLength), 0);
+}
+
 module.exports = {
   mergeRoutes,
   stripUnrelevantStartingSegments,
   stripUnrelevantEndingSegments,
+  isSubset,
+  totalLength,
 };

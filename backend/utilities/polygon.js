@@ -8,7 +8,7 @@ class Polygon {
   }
 
   extendedBoundingBox() {
-    const boundingBoxRadiusExtendRatio = 0.005;
+    const boundingBoxRadiusExtendRatio = 0.01;
     this.latitiudeMin = Math.min(this.start.latitude, this.end.latitude);
     this.longitudeMin = Math.min(this.start.longitude, this.end.longitude);
     this.latitiudeMax = Math.max(this.start.latitude, this.end.latitude);

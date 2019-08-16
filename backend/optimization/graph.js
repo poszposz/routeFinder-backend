@@ -1,6 +1,8 @@
 const GraphCreator = require('./graphCreator');
 const distanceCalculation = require('./../utilities/distanceCalculation');
 
+const maximumVertexSearchRadius = 300;
+
 class Graph {
 
   constructor(routes) {
@@ -22,14 +24,14 @@ class Graph {
     return transformedGraph;
   }
 
-  nearestStartVertex(location) {
+  nearestStartVertices(location) {
     const possibleStartVertices = this.vertices.filter((vertex) => {
       return vertex.outcomingRoutes.length > 0
     });
     return this.nearestVertices(possibleStartVertices, location);
   }
 
-  nearestEndVertex(location) {
+  nearestEndVertices(location) {
     const possibleEndVertices = this.vertices.filter((vertex) => {
       return vertex.incomingRoutes.length > 0
     });
@@ -43,7 +45,8 @@ class Graph {
       return firstDistance - secondDistance;
     });
     if (sorted.length > 0) {
-      return sorted[0];
+      let best = sorted[0];
+      return sorted.filter((vertex) => distanceCalculation.distanceBetweenLocations(best.centerLocation, vertex.centerLocation) < maximumVertexSearchRadius);
     }
     return null;
   }

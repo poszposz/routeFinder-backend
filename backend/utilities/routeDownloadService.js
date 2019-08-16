@@ -11,6 +11,14 @@ const client = axios.create({
   responseType: 'json',
 });
 
+function fullRoutesBikeRouteQuery() {
+  return 'SELECT opis, kategoria, ST_AsGeoJson(the_geom) AS cords, ST_AsGeoJson(the_geom) AS cords, ST_AsText(the_geom_webmercator) AS createpoints FROM public.infrastruktura_rowerowa_06_2018';
+}
+
+function fullRoutesAllRouteQuery() {
+  return 'SELECT description as opis, ST_AsGeoJson(the_geom) AS cords, ST_AsText(the_geom_webmercator) AS createpoints FROM public.sugerowane_trasy';
+}
+
 function bikeRouteQuery(polygon) {
   return `SELECT opis, kategoria, ST_AsGeoJson(the_geom) AS cords, ST_AsGeoJson(the_geom) AS cords, ST_AsText(the_geom_webmercator) AS createpoints FROM public.infrastruktura_rowerowa_06_2018 WHERE ST_Intersects(the_geom, ST_MakeEnvelope(${polygon.locationQuery()}, 4326))`;
 }
@@ -38,12 +46,22 @@ async function downloadRestrictedGraph(start, end) {
   return allRoutesSplitted;
 }
 
-async function downloadGraph() {
-  const response = await client({
+async function downloadCompleteGraph() {
+  const bikeQuery = 'sql?q=' + fullRoutesBikeRouteQuery();
+  const bikeRouteresponse = await client({
     method: 'get',
-    url: `sql?q=SELECT opis, kategoria, ST_AsGeoJson(the_geom) AS cords, ST_AsGeoJson(the_geom) AS cords FROM public.infrastruktura_rowerowa_06_2018`,
+    url: bikeQuery,
   });
-  return parseRoutes(response.data);
+  let bikeRoutes = parseRoutes(bikeRouteresponse.data);
+  const allRoutesQuery = 'sql?q=' + fullRoutesAllRouteQuery();
+  const allRouteResponse = await client({
+    method: 'get',
+    url: allRoutesQuery,
+  });
+  let allRoutes = parseRoutes(allRouteResponse.data);
+  allRoutes = bikeRoutes.concat(allRoutes);
+  let allRoutesSplitted = allRoutes = allRoutes.map((route) => route.split()).flatten();  
+  return allRoutesSplitted;
 }
 
 function parseRoutes(json) {
@@ -66,6 +84,6 @@ function parseSegments(segmentString) {
 }
 
 module.exports = {
-  "downloadGraph": downloadGraph,
-  "downloadRestrictedGraph": downloadRestrictedGraph,
+  downloadCompleteGraph,
+  downloadRestrictedGraph,
 };
