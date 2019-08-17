@@ -2,6 +2,8 @@ const Route = require('./routeModel');
 const Segment = require('./segment');
 const uuidv4 = require('./UUIDGenerator');
 var distanceCalculation = require('../utilities/distanceCalculation');
+var Dijkstra = require('../utilities/dijkstra');
+var NavigationRoute = require('../utilities/navigationRoute');
 
 function stripUnrelevantStartingSegments(routes) {
   let count = 0;
@@ -84,7 +86,42 @@ function isSubset(mainRouteDijkstraArray, routeDijkstraArray) {
   return isSubset;
 }
 
+function obtainCompleteRoute(graph, decodedStartLocation, decodedEndLocation) {
+  
+  const possibleStartVertices = graph.nearestStartVertices(decodedStartLocation.location);
+  const possibleEndVertices = graph.nearestEndVertices(decodedEndLocation.location);
+
+  let bestNavigationRoute;
+  possibleStartVertices.forEach((startVertexData) => {
+    possibleEndVertices.forEach((endVertexData) => {
+      const query = graph.generateDijkstraQuery();
+      const dijkstra = new Dijkstra(query);
+      const shortestRoute = dijkstra.findShortestPath(`${startVertexData.vertex.id}`, `${endVertexData.vertex.id}`);
+      if (shortestRoute === null) {
+        return;
+      }
+      const combined = graph.parseDijkstraResult(shortestRoute);
+      let navigationRoute = new NavigationRoute(decodedStartLocation, decodedEndLocation, startVertexData.vertex, endVertexData.vertex, combined);
+      if (bestNavigationRoute === undefined) {
+        bestNavigationRoute = navigationRoute;
+      } else if (navigationRoute.totalWeight < bestNavigationRoute.totalWeight) {
+        bestNavigationRoute = navigationRoute;
+      }
+    });
+  });
+  console.log(`Best start vertex: ${bestNavigationRoute.startVertex.id}`);
+  console.log(`Nearest end vertices: ${bestNavigationRoute.endVertex.id}`);
+
+  let stripped = stripUnrelevantStartingSegments(bestNavigationRoute.routes);
+  stripped = stripUnrelevantEndingSegments(stripped);
+  return {
+    'allRoutes': mergeRoutes(stripped),
+    'bestNavigationRoute': bestNavigationRoute
+  };
+}
+
 module.exports = {
+  obtainCompleteRoute,
   mergeRoutes,
   stripUnrelevantStartingSegments,
   stripUnrelevantEndingSegments,
