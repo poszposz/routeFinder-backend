@@ -2,9 +2,9 @@ import React from 'react';
 import { 
   Component,
 } from 'react';
-import './App.css';
+import './InputScreen.css';
 
-class App extends Component {
+class InputScreen extends Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -27,9 +27,10 @@ class App extends Component {
 
   handleSubmit(event) {
     event.preventDefault();
-    fetch(`/api/routes/find?startLocation=${encodeURIComponent(this.state.startLocation)}&endLocation=${encodeURIComponent(this.state.endLocation)}`)
-      .then(response => response.json())
-      .then(state => this.setState(state));
+
+    // fetch(`/api/routes/find?startLocation=${encodeURIComponent(this.state.startLocation)}&endLocation=${encodeURIComponent(this.state.endLocation)}`)
+    //   .then(response => response.json())
+    //   .then(state => this.setState(state));
   }
 
   render() {
@@ -61,4 +62,4 @@ class App extends Component {
   }
 }
 
-export default App;
+export default InputScreen;
