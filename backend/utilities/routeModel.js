@@ -3,7 +3,7 @@ const uuidv4 = require('./UUIDGenerator');
 
 const longestRouteAllowed = 300;
 
-const maximumSegmentLength = 20;
+const maximumSegmentLength = 10;
 
 class Route {
 

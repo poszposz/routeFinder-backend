@@ -154,8 +154,8 @@ class GraphCreator {
   pushVertex(route, searchType) {
       // Procedure for route starting vertex.
       // Performs search for all other routes that start nearby the given route.
-      let incomingCloseToStart = this.findClosest(route, this.routes, desiredDistanceThreshold, SEARCH_INCOMING, searchType);//.map((route) => route.copy());
-      let outcomingCloseToStart = this.findClosest(route, this.routes, desiredDistanceThreshold, SEARCH_OUTCOMING, searchType);//.map((route) => route.copy());
+      let incomingCloseToStart = this.findClosest(route, this.routes, desiredDistanceThreshold, SEARCH_INCOMING, searchType);
+      let outcomingCloseToStart = this.findClosest(route, this.routes, desiredDistanceThreshold, SEARCH_OUTCOMING, searchType);
 
       this.addSingleVertex(incomingCloseToStart, outcomingCloseToStart);
   }
