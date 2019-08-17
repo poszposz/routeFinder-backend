@@ -17,14 +17,14 @@ class Route {
     this.category = category === undefined ? "" : category;
     this.bidirectional = 1;
     let originalSegments = segments;
+    this.totalLength = segments.reduce((previous, next) => {
+      return previous + next.length;
+    }, 0);
     if (shouldNormalizeSegments) {
       this.segments = this.normalizeSegments(originalSegments);
     } else {
       this.segments = originalSegments;
     }
-    this.totalLength = this.segments.reduce((previous, next) => {
-      return previous + next.length;
-    }, 0);
     this.start = this.segments[0].start;
     this.end = this.segments[this.segments.length - 1].end;
   }
@@ -87,7 +87,10 @@ class Route {
   }
 
   copy() {
-    return new Route(this.id, this.name, this.category, this.segments);
+    let route = new Route(this.id, this.name, this.category, this.segments);
+    route.startPointVertexId = this.startPointVertexId;
+    route.endPointVertexId = this.endPointVertexId;
+    return route;
   }
 
   debugDescription() {

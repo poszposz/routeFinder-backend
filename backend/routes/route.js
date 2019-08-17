@@ -1,6 +1,7 @@
 var decodeLocation = require('../utilities/locationDecoder');
 var downloadService = require('../utilities/routeDownloadService');
 var express = require('express');
+var LocationCoordinate = require('../utilities/locationCoordinate');
 var Graph = require('../optimization/graph');
 var Dijkstra = require('../utilities/dijkstra');
 var NavigationRoute = require('../utilities/navigationRoute');
@@ -32,66 +33,77 @@ async function createGraph(startLocation, endLocation) {
   }
 }
 
-router.get('/find', async function(req, res, next) {
-  let { startLocation, endLocation } = req.query;
-  try {
-    const graphData = await createGraph(startLocation, endLocation);
-    const graph = graphData.graph;
-    const decodedStartLocation = graphData.decodedStartLocation;
-    const decodedEndLocation = graphData.decodedEndLocation;
-    const possibleStartVertices = graph.nearestStartVertices(decodedStartLocation.location);
-    const possibleEndVertices = graph.nearestEndVertices(decodedEndLocation.location);
-    console.log(`Nearest start vertices: ${possibleStartVertices.map(vertexData => vertexData.vertex.id)}`);
-    console.log(`Nearest end vertices: ${possibleEndVertices.map(vertexData => vertexData.vertex.id)}`);
+// router.get('/find', async function(req, res, next) {
+//   let { startLocation, endLocation } = req.query;
+//   try {
+//     const graphData = await createGraph(startLocation, endLocation);
+//     const graph = graphData.graph;
+//     const decodedStartLocation = graphData.decodedStartLocation;
+//     const decodedEndLocation = graphData.decodedEndLocation;
+//     const possibleStartVertices = graph.nearestStartVertices(decodedStartLocation.location);
+//     const possibleEndVertices = graph.nearestEndVertices(decodedEndLocation.location);
+//     console.log(`Nearest start vertices: ${possibleStartVertices.map(vertexData => vertexData.vertex.id)}`);
+//     console.log(`Nearest end vertices: ${possibleEndVertices.map(vertexData => vertexData.vertex.id)}`);
     
-    let bestNavigationRoute;
-    possibleStartVertices.forEach((startVertexData) => {
-      possibleEndVertices.forEach((endVertexData) => {
-        const query = graph.generateDijkstraQuery();
-        const dijkstra = new Dijkstra(query);
-        const shortestRoute = dijkstra.findShortestPath(`${startVertexData.vertex.id}`, `${endVertexData.vertex.id}`);
-        if (shortestRoute === null) {
-          return;
-        }
-        const combined = graph.parseDijkstraResult(shortestRoute);
-        let navigationRoute = new NavigationRoute(decodedStartLocation, decodedEndLocation, startVertexData.vertex, endVertexData.vertex, combined);
-        if (bestNavigationRoute === undefined) {
-          bestNavigationRoute = navigationRoute;
-        } else if (navigationRoute.totalWeight < bestNavigationRoute.totalWeight) {
-          bestNavigationRoute = navigationRoute;
-        }
-      });
-    });
-    console.log(`Best start vertex: ${bestNavigationRoute.startVertex.id}`);
-    console.log(`Nearest end vertices: ${bestNavigationRoute.endVertex.id}`);
+//     let bestNavigationRoute;
+//     possibleStartVertices.forEach((startVertexData) => {
+//       possibleEndVertices.forEach((endVertexData) => {
+//         const query = graph.generateDijkstraQuery();
+//         const dijkstra = new Dijkstra(query);
+//         const shortestRoute = dijkstra.findShortestPath(`${startVertexData.vertex.id}`, `${endVertexData.vertex.id}`);
+//         if (shortestRoute === null) {
+//           return;
+//         }
+//         const combined = graph.parseDijkstraResult(shortestRoute);
+//         let navigationRoute = new NavigationRoute(decodedStartLocation, decodedEndLocation, startVertexData.vertex, endVertexData.vertex, combined);
+//         if (bestNavigationRoute === undefined) {
+//           bestNavigationRoute = navigationRoute;
+//         } else if (navigationRoute.totalWeight < bestNavigationRoute.totalWeight) {
+//           bestNavigationRoute = navigationRoute;
+//         }
+//       });
+//     });
+//     console.log(`Best start vertex: ${bestNavigationRoute.startVertex.id}`);
+//     console.log(`Nearest end vertices: ${bestNavigationRoute.endVertex.id}`);
 
-    let stripped = routeCreator.stripUnrelevantStartingSegments(bestNavigationRoute.routes);
-    stripped = routeCreator.stripUnrelevantEndingSegments(stripped);
-    const combinedMerged = routeCreator.mergeRoutes(stripped);
+//     let stripped = routeCreator.stripUnrelevantStartingSegments(bestNavigationRoute.routes);
+//     stripped = routeCreator.stripUnrelevantEndingSegments(stripped);
+//     const combinedMerged = routeCreator.mergeRoutes(stripped);
 
-    let response = {
-      'startLocation': decodedStartLocation,
-      'endLocation': decodedEndLocation,
-      'totalLength': bestNavigationRoute.totalLength,
-      'routes': combinedMerged,
-    };
-    res.json(response);
-  } catch (error) {
-    console.log(`Error: ${error}`);
-    next(error);
-  }
-});
+//     let response = {
+//       'startLocation': decodedStartLocation,
+//       'endLocation': decodedEndLocation,
+//       'totalLength': bestNavigationRoute.totalLength,
+//       'routes': combinedMerged,
+//     };
+//     res.json(response);
+//   } catch (error) {
+//     console.log(`Error: ${error}`);
+//     next(error);
+//   }
+// });
 
 router.get('/findOptimized', async function(req, res, next) {
-  let { startLocation, endLocation } = req.query;
+  let { startLocation, endLocation, startLocationLatitude, startLocationLongitude } = req.query;
   try {
     const graph = preDownloadedGraph;
-    const decodedStartLocation = await decodeLocation(startLocation);
+    let decodedStartLocation;
+    if (startLocationLatitude === undefined | startLocationLongitude === undefined) {
+      console.log('Going for location decoding');
+      decodedStartLocation = await decodeLocation(startLocation);
+    } else {
+      console.log('Using location passed by the user');
+      decodedStartLocation = {
+        displayName: 'User defined',
+        location: {
+          latitude: parseFloat(startLocationLatitude),
+          longitude: parseFloat(startLocationLongitude),
+        }
+      };
+    }
     const decodedEndLocation = await decodeLocation(endLocation);
     const possibleStartVertices = graph.nearestStartVertices(decodedStartLocation.location);
     const possibleEndVertices = graph.nearestEndVertices(decodedEndLocation.location);
-    console.log(`Nearest start vertices: ${possibleStartVertices.map(vertex => vertex.id)}`);
-    console.log(`Nearest end vertices: ${possibleEndVertices.map(vertex => vertex.id)}`);
   
     let bestNavigationRoute;
     possibleStartVertices.forEach((startVertexData) => {

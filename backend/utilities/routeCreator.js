@@ -65,14 +65,14 @@ function mergeRoutes(routes) {
   routes.forEach((route) => {
     // We push the route the the exisitng array
     mergedRoutes.push(route);
-    // If it's the last one, we just push it to the array and quit.
+    // If it's the last one, we just push it to the array and quit.s
     if (route === routes[routes.length - 1]) { 
       return
     }
     // We create a route that will link the end of the current route with the start of the next route from the array.
     let nextRoute = routes[count + 1];
     let linkSegment = new Segment([route.end.longitude, route.end.latitude, nextRoute.start.longitude, nextRoute.start.latitude], 'Link');
-    let linkRoute = new Route(uuidv4(), "Link", "link", [linkSegment], false);
+    let linkRoute = new Route(uuidv4(), "Link", "link", [linkSegment], true);
     mergedRoutes.push(linkRoute);
     count += 1;
   });

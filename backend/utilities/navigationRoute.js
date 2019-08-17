@@ -7,7 +7,7 @@ class NavigationRoute {
     this.endLocation = endLocation
     this.startVertex = startVertex
     this.endVertex = endVertex
-    this.routes = routes
+    this.routes = routes.map(route => route.copy());
     this.loadTotalLength();
     this.loadTotalWeight();
   }

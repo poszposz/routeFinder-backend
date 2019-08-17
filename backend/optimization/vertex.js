@@ -1,4 +1,5 @@
 const LocationCoordinate = require('../utilities/locationCoordinate');
+var distanceCalculation = require('../utilities/distanceCalculation');
 
 class Vertex {
 
@@ -31,7 +32,10 @@ class Vertex {
     let transformedRoutes = {};
     this.outcomingRoutes.forEach((route) => {
       if (route.endPointVertexId === this.id) { return; }
-      transformedRoutes[`${route.endPointVertexId}`] = route.totalLength;
+      const distanceToStart = distanceCalculation.distanceBetweenLocations(route.start, this.centerLocation);
+      const distanceToEnd = distanceCalculation.distanceBetweenLocations(route.start, this.centerLocation);
+      const distance = Math.min(distanceToStart, distanceToEnd);
+      transformedRoutes[`${route.endPointVertexId}`] = route.totalLength + distance * 20;
     });
     return transformedRoutes;
   }
