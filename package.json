@@ -19,7 +19,9 @@
     "eject": "react-scripts eject",
     "server": "yarn --cwd ./backend start",
     "frontend": "yarn start src/",
-    "run_combined": "yarn start src/ & yarn --cwd ./backend start"
+    "run_combined": "yarn start src/ & yarn --cwd ./backend start",
+    "deploy_frontend": "pm2 start npm -- start",
+    "deploy_backend": "forever start ./backend/bin/www"
   },
   "eslintConfig": {
     "extends": "react-app"

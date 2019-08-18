@@ -2,7 +2,6 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 import { Route, BrowserRouter as Router } from 'react-router-dom'
 import { createBrowserHistory } from 'history';
-import * as serviceWorker from './serviceWorker';
 import './index.css'
 import InputScreen from './Screens/InputScreen/InputScreen';
 import MapScreen from './Screens/MapScreen/MapScreen';
@@ -16,6 +15,4 @@ const routing = (
   </Router>
 );
 
-ReactDOM.render(routing, document.getElementById('root'))
-
-serviceWorker.unregister();
+ReactDOM.render(routing, document.getElementById('root'));
