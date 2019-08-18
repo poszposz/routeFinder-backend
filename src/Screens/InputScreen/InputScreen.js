@@ -35,12 +35,9 @@ class InputScreen extends Component {
     this.setState({ shouldTranstionToMap: true})
   }
 
-  fetchRoute(start, end) {
-    fetch(`http://localhost:3001/api/routes/visualizationPoints?startLocation=${start}&endLocation=${end}`).then(response => console.log(response));
-  }
-
   render() {
     if (this.state.shouldTranstionToMap) {
+      this.props.history.push('/');
       return <Redirect to={{
         pathname: '/map', 
         state: { startLocation: this.state.startLocation, endLocation: this.state.endLocation}

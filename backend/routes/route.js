@@ -67,11 +67,8 @@ router.get('/visualizationPoints', async function(req, res, next) {
     const decodedEndLocation = await decodeLocation(endLocation);
     const result = routeCreator.obtainCompleteRoute(preDownloadedGraph, decodedStartLocation, decodedEndLocation);
     const mappedResults = result.allRoutes.map(route => route.segments).flatten().map(segment => {
-      return [
-        {'latitude': parseFloat(segment.start.latitude), 'longitude': parseFloat(segment.start.longitude)},
-        {'latitude': parseFloat(segment.end.latitude), 'longitude': parseFloat(segment.end.longitude)}
-      ]
-    }).flatten();
+      return [parseFloat(segment.start.latitude), parseFloat(segment.start.longitude)];
+    });
     res.json(mappedResults);
   } catch (error) {
     console.log(`Error: ${error}`);
