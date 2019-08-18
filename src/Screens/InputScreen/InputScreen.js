@@ -47,23 +47,37 @@ class InputScreen extends Component {
     return (
       <div className="App">
         <header className="App-header">
+        <label className="label-large">🚴</label>
+        <br></br>
+        <label className="label">Welcome to bike route finder for Kraków</label>
+        <br></br>
+        <label className="label">Enter start and end street names:</label>
           <form onSubmit={this.handleSubmit}>
-            <label htmlFor="name">Enter start and end locations:</label>
             <br></br>
             <br></br>
             <input
+              className="input"
               id="start_location"
               type="text"
               value={this.state.startLocation}
               onChange={this.handleStartLocationChange}
+              placeholder={"Start"}
             />
+            <p></p>
             <input
+              className="input"
               id="end_location"
               type="text"
               value={this.state.endLocation}
               onChange={this.handleEndLocationChange}
+              placeholder={"End"}
             />
-            <button type="submit" onClick={this.handleSubmit}>
+            <p></p>
+            <button 
+              className="button"
+              type="submit" 
+              onClick={this.handleSubmit}
+            >
               Submit
             </button>
           </form>
