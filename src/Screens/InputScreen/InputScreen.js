@@ -2,6 +2,7 @@ import React from 'react';
 import { 
   Component,
 } from 'react';
+import { Redirect } from 'react-router-dom'
 import axios from 'axios';
 import './InputScreen.css';
 
@@ -13,17 +14,12 @@ class InputScreen extends Component {
       startLocation: '',
       endLocation: '',
     };
-    this.handleSubmit = this.handleSubmit.bind(this)
   }
 
   client = axios.create({
-    baseURL: 'http://localhost:3001',
+    baseURL: 'http://localhost:3001/',
     timeout: 10000,
-    responseType: 'json',
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json'
-    }
+    responseType: 'json'
   });
 
   handleStartLocationChange = (event) => {
@@ -34,14 +30,23 @@ class InputScreen extends Component {
     this.setState({ endLocation: event.target.value });
   }
 
-  handleSubmit = async () => {
+  handleSubmit = () => {
     console.log(`Submitted with start: ${this.state.startLocation}, end: ${this.state.endLocation}`);
-    const response = await fetch(`http://localhost:3001/api/routes/visualizationPoints?startLocation=${encodeURIComponent(this.state.startLocation)}&endLocation=${encodeURIComponent(this.state.endLocation)}`)
-    const json = await response.json();
-    console.log(`Response: ${json}`);
+    this.setState({ shouldTranstionToMap: true})
+  }
+
+  fetchRoute(start, end) {
+    fetch(`http://localhost:3001/api/routes/visualizationPoints?startLocation=${start}&endLocation=${end}`).then(response => console.log(response));
   }
 
   render() {
+    if (this.state.shouldTranstionToMap) {
+      return <Redirect to={{
+        pathname: '/map', 
+        state: { startLocation: this.state.startLocation, endLocation: this.state.endLocation}
+      }}
+      />;
+    }
     return (
       <div className="App">
         <header className="App-header">
