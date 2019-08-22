@@ -72,9 +72,12 @@ class Graph {
 
   genrateAStarGraph() {
     var graph = createGraph();
-    this.vertices.map(vertex => [vertex.incomingRoutes, vertex.outcomingRoutes]).flatten().forEach((route) => {
-      graph.addLink(route.startPointVertexId, route.endPointVertexId, {weight: route.totalWeight});
-    });
+    this.vertices.forEach(vertex => {
+      graph.addNode(vertex.id, {vertex: vertex});
+      [vertex.incomingRoutes, vertex.outcomingRoutes].flatten().forEach((route) => {
+        graph.addLink(route.startPointVertexId, route.endPointVertexId, {weight: route.totalWeight});
+      });
+    })
     return graph;
   }
 

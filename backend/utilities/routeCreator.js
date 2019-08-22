@@ -4,6 +4,7 @@ const uuidv4 = require('./UUIDGenerator');
 var distanceCalculation = require('../utilities/distanceCalculation');
 var Dijkstra = require('../utilities/dijkstra');
 var NavigationRoute = require('../utilities/navigationRoute');
+let createGraph = require('ngraph.graph');
 let path = require('ngraph.path');
 
 function stripUnrelevantStartingSegments(routes) {
@@ -92,11 +93,12 @@ function obtainCompleteDijkstraRoute(graph, decodedStartLocation, decodedEndLoca
   const possibleStartVertices = graph.nearestStartVertices(decodedStartLocation.location);
   const possibleEndVertices = graph.nearestEndVertices(decodedEndLocation.location);
 
+  var start = new Date()
   let bestNavigationRoute;
+  const query = graph.generateDijkstraQuery();
+  const dijkstra = new Dijkstra(query);
   possibleStartVertices.forEach((startVertexData) => {
     possibleEndVertices.forEach((endVertexData) => {
-      const query = graph.generateDijkstraQuery();
-      const dijkstra = new Dijkstra(query);
       const shortestRoute = dijkstra.findShortestPath(`${startVertexData.vertex.id}`, `${endVertexData.vertex.id}`);
       if (shortestRoute === null) {
         return;
@@ -110,8 +112,8 @@ function obtainCompleteDijkstraRoute(graph, decodedStartLocation, decodedEndLoca
       }
     });
   });
-  console.log(`Best start vertex: ${bestNavigationRoute.startVertex.id}`);
-  console.log(`Nearest end vertices: ${bestNavigationRoute.endVertex.id}`);
+  var end = new Date() - start
+  console.info('Dijkstra execution time: %dms', end)
 
   let stripped = stripUnrelevantStartingSegments(bestNavigationRoute.routes);
   stripped = stripUnrelevantEndingSegments(stripped);
@@ -122,22 +124,25 @@ function obtainCompleteDijkstraRoute(graph, decodedStartLocation, decodedEndLoca
 }
 
 function obtainCompleteAStarRoute(graph, decodedStartLocation, decodedEndLocation) {
-  
+
   const possibleStartVertices = graph.nearestStartVertices(decodedStartLocation.location);
   const possibleEndVertices = graph.nearestEndVertices(decodedEndLocation.location);
 
+  var start = new Date()
   let bestNavigationRoute;
+  const aStarGraph = graph.genrateAStarGraph();
   possibleStartVertices.forEach((startVertexData) => {
     possibleEndVertices.forEach((endVertexData) => {
-      const aStarGraph = graph.genrateAStarGraph();
       let pathFinder = path.aStar(aStarGraph, {
         distance(fromNode, toNode, link) {
           return link.data.weight;
+        },
+        heuristic(fromNode, toNode) {
+          return distanceCalculation.distanceBetweenLocations(toNode.data.vertex.centerLocation, decodedEndLocation.location);
         }
       });
-      const shortestRouteData = pathFinder.find(startVertexData.vertex.id, endVertexData.vertex.id);
-      // console.log(`Shortest route: ${JSON.stringify(shortestRouteData)}`);
-      const shortestRouteVeritceIds = shortestRouteData[0].links.map(link => link.fromId) 
+      const shortestRouteArray = pathFinder.find(startVertexData.vertex.id, endVertexData.vertex.id);
+      const shortestRouteVeritceIds = shortestRouteArray.map(data => data.id).reverse();
       
       const combined = graph.parseDijkstraResult(shortestRouteVeritceIds);
       let navigationRoute = new NavigationRoute(decodedStartLocation, decodedEndLocation, startVertexData.vertex, endVertexData.vertex, combined);
@@ -148,8 +153,8 @@ function obtainCompleteAStarRoute(graph, decodedStartLocation, decodedEndLocatio
       }
     });
   });
-  console.log(`Best start vertex: ${bestNavigationRoute.startVertex.id}`);
-  console.log(`Nearest end vertices: ${bestNavigationRoute.endVertex.id}`);
+  var end = new Date() - start
+  console.info('A Star execution time: %dms', end)
 
   let stripped = stripUnrelevantStartingSegments(bestNavigationRoute.routes);
   stripped = stripUnrelevantEndingSegments(stripped);

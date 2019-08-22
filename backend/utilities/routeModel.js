@@ -22,10 +22,10 @@ class Route {
     //   this.bidirectional = 0;
     // }
     let originalSegments = segments;
-    this.totalWeight = Number.POSITIVE_INFINITY;
     this.totalLength = segments.reduce((previous, next) => {
       return previous + next.length;
     }, 0);
+    this.totalWeight = this.totalLength;
     this.segments = this.normalizeSegments(originalSegments);
     this.start = this.segments[0].start;
     this.end = this.segments[this.segments.length - 1].end;
