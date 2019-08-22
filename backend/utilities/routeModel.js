@@ -17,6 +17,7 @@ class Route {
     this.category = category === undefined ? "" : category;
     this.bidirectional = 1;
     let originalSegments = segments;
+    this.totalWeight = Number.POSITIVE_INFINITY;
     this.totalLength = segments.reduce((previous, next) => {
       return previous + next.length;
     }, 0);

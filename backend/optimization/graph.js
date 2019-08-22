@@ -1,3 +1,4 @@
+var createGraph = require('ngraph.graph');
 const GraphCreator = require('./graphCreator');
 const distanceCalculation = require('./../utilities/distanceCalculation');
 
@@ -67,6 +68,14 @@ class Graph {
       count += 1;
       return route;
     }).filter((route) => route != null);
+  }
+
+  genrateAStarGraph() {
+    var graph = createGraph();
+    this.vertices.map(vertex => [vertex.incomingRoutes, vertex.outcomingRoutes]).flatten().forEach((route) => {
+      graph.addLink(route.startPointVertexId, route.endPointVertexId, {weight: route.totalWeight});
+    });
+    return graph;
   }
 
   debugDescription() {

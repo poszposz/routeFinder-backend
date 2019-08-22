@@ -16,6 +16,18 @@ class Vertex {
 
     this.incomingRoutes = incomingRoutes === undefined ? [] : incomingRoutes;
     this.outcomingRoutes = outcomingRoutes === undefined ? [] : outcomingRoutes;
+
+    this.assingTotalWeights(this.incomingRoutes);
+    this.assingTotalWeights(this.outcomingRoutes);
+  }
+
+  assingTotalWeights(routes) {
+    routes.forEach((route) => {
+      const distanceToStart = distanceCalculation.distanceBetweenLocations(route.start, this.centerLocation);
+      const distanceToEnd = distanceCalculation.distanceBetweenLocations(route.start, this.centerLocation);
+      const distance = Math.min(distanceToStart, distanceToEnd);
+      route.totalWeight = route.totalLength + distance * 20;
+    });
   }
 
   reloadCenterLocation() {
@@ -32,10 +44,7 @@ class Vertex {
     let transformedRoutes = {};
     this.outcomingRoutes.forEach((route) => {
       if (route.endPointVertexId === this.id) { return; }
-      const distanceToStart = distanceCalculation.distanceBetweenLocations(route.start, this.centerLocation);
-      const distanceToEnd = distanceCalculation.distanceBetweenLocations(route.start, this.centerLocation);
-      const distance = Math.min(distanceToStart, distanceToEnd);
-      transformedRoutes[`${route.endPointVertexId}`] = route.totalLength + distance * 20;
+      transformedRoutes[`${route.endPointVertexId}`] = route.totalWeight;
     });
     return transformedRoutes;
   }

@@ -473,6 +473,23 @@ negotiator@0.6.2:
   resolved "https://registry.yarnpkg.com/negotiator/-/negotiator-0.6.2.tgz#feacf7ccf525a77ae9634436a64883ffeca346fb"
   integrity sha512-hZXc7K2e+PgeI1eDBe/10Ard4ekbfrrqG8Ep+8Jmf4JID2bNg7NvCPOZN+kfF574pFQI7mum2AUqDidoKqcTOw==
 
+ngraph.events@1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/ngraph.events/-/ngraph.events-1.0.0.tgz#260b638f1d8b1394a10ce1dda9e5d9d9c85001b1"
+  integrity sha512-Z7wyywdw8IKjOW0bDiOG4FUqX5fwqW7SDMO1huemDXho7Qy1b02RoBkPS43KLIZU2wrW2orju99k8wIr+xXvVA==
+
+ngraph.graph@^18.0.1:
+  version "18.0.1"
+  resolved "https://registry.yarnpkg.com/ngraph.graph/-/ngraph.graph-18.0.1.tgz#4e2a95a4d1c89d560ff3bca2b24bebf3c8fe8c9f"
+  integrity sha512-sT0EnGxzppEpSpjFcFGbLGsMqkCjLdHqpdiHW6she8n/K/o9KT5hd0nFj1eU8BX1u0OpPOJdjlHNnHflhNh40w==
+  dependencies:
+    ngraph.events "1.0.0"
+
+ngraph.path@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/ngraph.path/-/ngraph.path-1.2.0.tgz#6f50110d7439d4289fe0f60a1dc8d184b5191e56"
+  integrity sha512-GMbpiox35n8N/Cs42hJllEvASqh8BrQ+u7RQ55z/538gljc6ccoZakX5liFyEX2arysraH1CLaAEvu/YxjP6jQ==
+
 object-assign@^4:
   version "4.1.1"
   resolved "https://registry.yarnpkg.com/object-assign/-/object-assign-4.1.1.tgz#2109adc7965887cfc05cbbd442cac8bfbb360863"

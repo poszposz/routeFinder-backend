@@ -46,7 +46,37 @@ router.get('/findOptimized', async function(req, res, next) {
       };
     }
     const decodedEndLocation = await decodeLocation(endLocation);
-    const result = routeCreator.obtainCompleteRoute(preDownloadedGraph, decodedStartLocation, decodedEndLocation);
+    const result = routeCreator.obtainCompleteDijkstraRoute(preDownloadedGraph, decodedStartLocation, decodedEndLocation);
+    let response = {
+      'startLocation': decodedStartLocation,
+      'endLocation': decodedEndLocation,
+      'totalLength': result.bestNavigationRoute.totalLength,
+      'routes':  result.allRoutes,
+    };
+    res.json(response);
+  } catch (error) {
+    console.log(`Error: ${error}`);
+    next(error);
+  }
+});
+
+router.get('/findOptimizedAStar', async function(req, res, next) {
+  let { startLocation, endLocation, startLocationLatitude, startLocationLongitude } = req.query;
+  try {
+    let decodedStartLocation;
+    if (startLocationLatitude === undefined | startLocationLongitude === undefined) {
+      decodedStartLocation = await decodeLocation(startLocation);
+    } else {
+      decodedStartLocation = {
+        displayName: 'User defined',
+        location: {
+          latitude: parseFloat(startLocationLatitude),
+          longitude: parseFloat(startLocationLongitude),
+        }
+      };
+    }
+    const decodedEndLocation = await decodeLocation(endLocation);
+    const result = routeCreator.obtainCompleteAStarRoute(preDownloadedGraph, decodedStartLocation, decodedEndLocation);
     let response = {
       'startLocation': decodedStartLocation,
       'endLocation': decodedEndLocation,

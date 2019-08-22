@@ -4,6 +4,7 @@ const uuidv4 = require('./UUIDGenerator');
 var distanceCalculation = require('../utilities/distanceCalculation');
 var Dijkstra = require('../utilities/dijkstra');
 var NavigationRoute = require('../utilities/navigationRoute');
+let path = require('ngraph.path');
 
 function stripUnrelevantStartingSegments(routes) {
   let count = 0;
@@ -86,7 +87,7 @@ function isSubset(mainRouteDijkstraArray, routeDijkstraArray) {
   return isSubset;
 }
 
-function obtainCompleteRoute(graph, decodedStartLocation, decodedEndLocation) {
+function obtainCompleteDijkstraRoute(graph, decodedStartLocation, decodedEndLocation) {
   
   const possibleStartVertices = graph.nearestStartVertices(decodedStartLocation.location);
   const possibleEndVertices = graph.nearestEndVertices(decodedEndLocation.location);
@@ -120,8 +121,47 @@ function obtainCompleteRoute(graph, decodedStartLocation, decodedEndLocation) {
   };
 }
 
+function obtainCompleteAStarRoute(graph, decodedStartLocation, decodedEndLocation) {
+  
+  const possibleStartVertices = graph.nearestStartVertices(decodedStartLocation.location);
+  const possibleEndVertices = graph.nearestEndVertices(decodedEndLocation.location);
+
+  let bestNavigationRoute;
+  possibleStartVertices.forEach((startVertexData) => {
+    possibleEndVertices.forEach((endVertexData) => {
+      const aStarGraph = graph.genrateAStarGraph();
+      let pathFinder = path.aStar(aStarGraph, {
+        distance(fromNode, toNode, link) {
+          return link.data.weight;
+        }
+      });
+      const shortestRouteData = pathFinder.find(startVertexData.vertex.id, endVertexData.vertex.id);
+      // console.log(`Shortest route: ${JSON.stringify(shortestRouteData)}`);
+      const shortestRouteVeritceIds = shortestRouteData[0].links.map(link => link.fromId) 
+      
+      const combined = graph.parseDijkstraResult(shortestRouteVeritceIds);
+      let navigationRoute = new NavigationRoute(decodedStartLocation, decodedEndLocation, startVertexData.vertex, endVertexData.vertex, combined);
+      if (bestNavigationRoute === undefined) {
+        bestNavigationRoute = navigationRoute;
+      } else if (navigationRoute.totalWeight < bestNavigationRoute.totalWeight) {
+        bestNavigationRoute = navigationRoute;
+      }
+    });
+  });
+  console.log(`Best start vertex: ${bestNavigationRoute.startVertex.id}`);
+  console.log(`Nearest end vertices: ${bestNavigationRoute.endVertex.id}`);
+
+  let stripped = stripUnrelevantStartingSegments(bestNavigationRoute.routes);
+  stripped = stripUnrelevantEndingSegments(stripped);
+  return {
+    'allRoutes': mergeRoutes(stripped),
+    'bestNavigationRoute': bestNavigationRoute
+  };
+}
+
 module.exports = {
-  obtainCompleteRoute,
+  obtainCompleteDijkstraRoute,
+  obtainCompleteAStarRoute,
   mergeRoutes,
   stripUnrelevantStartingSegments,
   stripUnrelevantEndingSegments,
