@@ -7,7 +7,7 @@ const maximumSegmentLength = 10;
 
 class Route {
 
-  constructor(id, name, category, segments, shouldNormalizeSegments = true) {
+  constructor(id, name, category, segments, isBikeRoute) {
     this.id = id;
 
     this.startPointVertexId = 0;
@@ -15,19 +15,21 @@ class Route {
 
     this.name = name;
     this.category = category === undefined ? "" : category;
-    this.bidirectional = 1;
+    this.bidirectional = 1; 
+    // if (this.category.includes('dwr') | this.category.includes('c16t22') | this.category.includes('cpr') | !isBikeRoute) {
+    //   this.bidirectional = 1;      
+    // } else { 
+    //   this.bidirectional = 0;
+    // }
     let originalSegments = segments;
     this.totalWeight = Number.POSITIVE_INFINITY;
     this.totalLength = segments.reduce((previous, next) => {
       return previous + next.length;
     }, 0);
-    if (shouldNormalizeSegments) {
-      this.segments = this.normalizeSegments(originalSegments);
-    } else {
-      this.segments = originalSegments;
-    }
+    this.segments = this.normalizeSegments(originalSegments);
     this.start = this.segments[0].start;
     this.end = this.segments[this.segments.length - 1].end;
+    this.isBikeRoute = isBikeRoute;
   }
 
   normalizeSegments(segments) {
@@ -57,7 +59,7 @@ class Route {
     const maximumSegmentsPerRoute = longestRouteAllowed / maximumSegmentLength;
     let segments = this.segments.chunk(maximumSegmentsPerRoute);
     return segments.map((segmentChunk) => {
-      let route = new Route(uuidv4(), this.name, this.category, segmentChunk);
+      let route = new Route(uuidv4(), this.name, this.category, segmentChunk, this.isBikeRoute);
       return route;
     });
   }
@@ -81,14 +83,14 @@ class Route {
 
   reversed() {
     let newSegments = this.segments.map((segment) => segment.reversed()).concat().reverse();
-    let route = new Route(this.id, this.name, this.category, newSegments);
+    let route = new Route(this.id, this.name, this.category, newSegments, this.isBikeRoute);
     route.startPointVertexId = this.endPointVertexId;
     route.endPointVertexId = this.startPointVertexId;
     return route;
   }
 
   copy() {
-    let route = new Route(this.id, this.name, this.category, this.segments);
+    let route = new Route(this.id, this.name, this.category, this.segments, this.isBikeRoute);
     route.startPointVertexId = this.startPointVertexId;
     route.endPointVertexId = this.endPointVertexId;
     return route;

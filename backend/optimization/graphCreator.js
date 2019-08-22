@@ -9,7 +9,7 @@ const SEARCH_AROUND_END = "SEARCH_AROUND_END";
 const SEARCH_INCOMING = "SEARCH_INCOMING";
 const SEARCH_OUTCOMING = "SEARCH_OUTCOMING";
 
-const desiredDistanceThreshold = 30;
+const desiredDistanceThreshold = 20;
 
 const routeNearVertexIgnoreDistance = 800;
 
@@ -128,8 +128,8 @@ class GraphCreator {
         let suffixedSegments = splitted[0];
         if (prefixedSegments.length === 0 | suffixedSegments.length === 0) { return; }
         // We have to create two routes from prefixed and suffixed segments.
-        let prefixedRoute = new Route(uuidv4(), route.name, route.category, prefixedSegments);
-        let suffixedRoute = new Route(uuidv4(), route.name, route.category, suffixedSegments);
+        let prefixedRoute = new Route(uuidv4(), route.name, route.category, prefixedSegments, route.isBikeRoute);
+        let suffixedRoute = new Route(uuidv4(), route.name, route.category, suffixedSegments, route.isBikeRoute);
         // To that point all should be good.
         
         // We have to find a vertices this route is starting and ending with.
