@@ -95,7 +95,7 @@ router.get('/visualizationPoints', async function(req, res, next) {
   try {
     const decodedStartLocation = await decodeLocation(startLocation);
     const decodedEndLocation = await decodeLocation(endLocation);
-    const result = routeCreator.obtainCompleteRoute(preDownloadedGraph, decodedStartLocation, decodedEndLocation);
+    const result = routeCreator.obtainCompleteDijkstraRoute(preDownloadedGraph, decodedStartLocation, decodedEndLocation);
     const mappedResults = result.allRoutes.map(route => route.segments).flatten().map(segment => {
       return [parseFloat(segment.start.latitude), parseFloat(segment.start.longitude)];
     });
