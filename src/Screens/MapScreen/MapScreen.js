@@ -24,7 +24,8 @@ class MapScreen extends Component {
     console.log(`Starting: ${this.props.location.state.startLocation}`);
     console.log(`Ending: ${this.props.location.state.endLocation}`);
 
-    fetch(`http://104.248.25.229:3001/api/routes/visualizationPoints?startLocation=${startLocation}&endLocation=${endLocation}`)
+    // fetch(`http://104.248.25.229:3001/api/routes/visualizationPoints?startLocation=${startLocation}&endLocation=${endLocation}`)
+    fetch(`http://localhost:3001/api/routes/visualizationPointsAStar?startLocation=${startLocation}&endLocation=${endLocation}`)
         .then(response => response.json())
         .then(json => {
           this.setState({ waypointsLoaded: true, waypoints: json });
