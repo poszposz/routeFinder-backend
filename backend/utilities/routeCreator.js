@@ -204,7 +204,7 @@ function optimizeRouteEndings(navigationRoute) {
   });
   const bestEndSegmentIndex = endingRoute.segments.findIndex(segment => segment.id === bestEndSegment.id);
 
-  endingRoute.segments = endingRoute.segments.slice(0, endingRoute.segments.length - 1 - bestEndSegmentIndex);
+  endingRoute.segments = endingRoute.segments.slice(0, bestEndSegmentIndex);
   endingRoute.adjustEndings();
 }
 

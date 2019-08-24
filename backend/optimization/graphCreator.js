@@ -9,9 +9,9 @@ const SEARCH_AROUND_END = "SEARCH_AROUND_END";
 const SEARCH_INCOMING = "SEARCH_INCOMING";
 const SEARCH_OUTCOMING = "SEARCH_OUTCOMING";
 
-const desiredDistanceThreshold = 25;
+const desiredDistanceThreshold = 30;
 
-const desiredNearbyDistanceThreshold = 20;
+const desiredNearbyDistanceThreshold = 30;
 
 const desiredVertexMergeDistanceThreshold = 15;
 
