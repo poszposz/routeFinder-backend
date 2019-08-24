@@ -9,9 +9,11 @@ const SEARCH_AROUND_END = "SEARCH_AROUND_END";
 const SEARCH_INCOMING = "SEARCH_INCOMING";
 const SEARCH_OUTCOMING = "SEARCH_OUTCOMING";
 
-const desiredDistanceThreshold = 20;
+const desiredDistanceThreshold = 30;
 
-const routeNearVertexIgnoreDistance = 800;
+const desiredNearbyDistanceThreshold = 20;
+
+const routeNearVertexIgnoreDistance = 3300;
 
 class GraphCreator {
 
@@ -118,7 +120,7 @@ class GraphCreator {
         // We find the first segment that is near enough to the specified vertex. Works much faster than sorting and extracting first.
         const eligibleSegment = route.segments.find((segment) => {
           const distance = distanceCalculation.distanceBetweenLocations(vertex.centerLocation, segment.start);
-          return distance <= desiredDistanceThreshold;
+          return distance <= desiredNearbyDistanceThreshold;
         });
         // If none found, just return from the method.
         if (eligibleSegment === undefined) { return; }

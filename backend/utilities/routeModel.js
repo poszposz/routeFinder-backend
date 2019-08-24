@@ -1,7 +1,7 @@
 require('../extensions/array');
 const uuidv4 = require('./UUIDGenerator');
 
-const longestRouteAllowed = 300;
+const longestRouteAllowed = 1000;
 
 const maximumSegmentLength = 10;
 
