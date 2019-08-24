@@ -49,7 +49,7 @@ class InputScreen extends Component {
         <header className="App-header">
         <label className="label-large">🚴</label>
         <br></br>
-        <label className="label">(Using not enitrely test A* algorithm)</label>
+        <label className="label">(Using not enitrely tested A* algorithm)</label>
         <br></br>
         <br></br>
         <label className="label">Welcome to bike route finder for Kraków</label>
