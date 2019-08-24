@@ -23,10 +23,12 @@ class Vertex {
 
   assingTotalWeights(routes) {
     routes.forEach((route) => {
-      const distanceToStart = distanceCalculation.distanceBetweenLocations(route.start, this.centerLocation);
-      const distanceToEnd = distanceCalculation.distanceBetweenLocations(route.start, this.centerLocation);
-      const distance = Math.min(distanceToStart, distanceToEnd);
-      const weight = (route.totalLength * (route.isBikeRoute ? 1 : 2)) + (distance * 10);
+      let distanceToStart = distanceCalculation.distanceBetweenLocations(route.start, this.centerLocation);
+      distanceToStart = distanceToStart <= 10 ? 0 : distanceToStart;
+      let distanceToEnd = distanceCalculation.distanceBetweenLocations(route.start, this.centerLocation);
+      distanceToEnd = distanceToEnd <= 10 ? 0 : distanceToEnd;
+      const total = distanceToStart + distanceToEnd;
+      const weight = (route.totalLength * (route.isBikeRoute ? 1 : 1.2)) + (total * 10);
       route.totalWeight = weight;
     });
   }

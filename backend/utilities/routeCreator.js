@@ -4,7 +4,6 @@ const uuidv4 = require('./UUIDGenerator');
 var distanceCalculation = require('../utilities/distanceCalculation');
 var Dijkstra = require('../utilities/dijkstra');
 var NavigationRoute = require('../utilities/navigationRoute');
-let createGraph = require('ngraph.graph');
 let path = require('ngraph.path');
 
 function stripUnrelevantStartingSegments(routes) {
@@ -23,10 +22,10 @@ function stripUnrelevantStartingSegments(routes) {
 }
 
 function stripUnrelevantEndingSegments(routes) {
-  let count = 0;
+  let count = 1;
   routes.forEach((route) => {
     // If it's the first one, we just quit.
-    if (route === routes[0]) { 
+    if (route === routes[0] | route === routes[routes.length - 1]) {
       return
     }
     let nextRoute = routes[count + 1];
@@ -43,10 +42,15 @@ function relevantEndSegments(route, nextRoute) {
   
   /// We have to find segment of the next route that is the closest to the ending of the previous route.
   let sortedSegments = route.segments.concat().sort((segment1, segment2) => {
-    return distanceCalculation.distanceBetweenLocations(start, segment2.end) - distanceCalculation.distanceBetweenLocations(start, segment1.end);
+    return distanceCalculation.distanceBetweenLocations(start, segment1.end) - distanceCalculation.distanceBetweenLocations(start, segment2.end);
   });
   let nearest = sortedSegments[0];
-  let nearestSegmentIndex = route.segments.findIndex((segment) => segment.id === nearest.id);
+  let nearestSegmentIndex = route.segments.findIndex(segment => segment.id === nearest.id);
+  
+  console.log(`Nearest end segment id: ${nearest.id}`);
+  console.log(`Nearest end segment index: ${nearestSegmentIndex}`);
+  console.log(`All segments: ${route.segments.length}`);
+  
   return route.segments.slice(0, nearestSegmentIndex);
 }
 
@@ -156,8 +160,8 @@ function obtainCompleteAStarRoute(graph, decodedStartLocation, decodedEndLocatio
   var end = new Date() - start
   console.info('A Star execution time: %dms', end)
 
-  let stripped = stripUnrelevantStartingSegments(bestNavigationRoute.routes);
-  stripped = stripUnrelevantEndingSegments(stripped);
+  let stripped = stripUnrelevantEndingSegments(bestNavigationRoute.routes);
+  stripped = stripUnrelevantStartingSegments(stripped);
   return {
     'allRoutes': mergeRoutes(stripped),
     'bestNavigationRoute': bestNavigationRoute

@@ -28,8 +28,7 @@ class MapScreen extends Component {
     fetch(`http://localhost:3001/api/routes/visualizationPointsAStar?startLocation=${startLocation}&endLocation=${endLocation}`)
         .then(response => response.json())
         .then(json => {
-          const links = json
-          .this.setState({ waypointsLoaded: true, waypoints: json });
+          this.setState({ waypointsLoaded: true, waypoints: json });
         })
         .catch(error => {
           this.setState({ error });

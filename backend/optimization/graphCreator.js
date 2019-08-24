@@ -9,9 +9,11 @@ const SEARCH_AROUND_END = "SEARCH_AROUND_END";
 const SEARCH_INCOMING = "SEARCH_INCOMING";
 const SEARCH_OUTCOMING = "SEARCH_OUTCOMING";
 
-const desiredDistanceThreshold = 30;
+const desiredDistanceThreshold = 25;
 
 const desiredNearbyDistanceThreshold = 20;
+
+const desiredVertexMergeDistanceThreshold = 15;
 
 const routeNearVertexIgnoreDistance = 3300;
 
@@ -77,7 +79,7 @@ class GraphCreator {
     // We fin a vertex that is already nerby a vertex that we are about to add.
     const alreadyExistingVertex = this.vertices.find((iteratedVertex) => {
       const distance = distanceCalculation.distanceBetweenLocations(vertex.centerLocation, iteratedVertex.centerLocation);
-      return distance < desiredDistanceThreshold;
+      return distance < desiredVertexMergeDistanceThreshold;
     });
     if (alreadyExistingVertex === undefined) {
       this.vertices.push(vertex);
