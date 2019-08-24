@@ -5,14 +5,14 @@ class Polygon {
   constructor(start, end) {
     this.start = start;
     this.end = end;
-  }
-
-  extendedBoundingBox() {
-    const boundingBoxRadiusExtendRatio = 0.01;
     this.latitiudeMin = Math.min(this.start.latitude, this.end.latitude);
     this.longitudeMin = Math.min(this.start.longitude, this.end.longitude);
     this.latitiudeMax = Math.max(this.start.latitude, this.end.latitude);
     this.longitudeMax = Math.max(this.start.longitude, this.end.longitude);
+  }
+
+  extendedBoundingBox() {
+    const boundingBoxRadiusExtendRatio = 0.01;
     const bottomLeft = new LocationCoordinate(this.latitiudeMin - boundingBoxRadiusExtendRatio, this.longitudeMin - boundingBoxRadiusExtendRatio);
     const topRight = new LocationCoordinate(this.latitiudeMax + boundingBoxRadiusExtendRatio, this.longitudeMax + boundingBoxRadiusExtendRatio);
     return new Polygon(bottomLeft, topRight);
@@ -23,9 +23,9 @@ class Polygon {
     return `${Number(extendedBoundingBox.start.longitude)}, ${Number(extendedBoundingBox.start.latitude)}, ${Number(extendedBoundingBox.end.longitude)}, ${Number(extendedBoundingBox.end.latitude)}`
   }
 
-  intersectsPolygon(polygon) {
-    if (this.latitiudeMax < polygon.latitiudeMin) { return false; }
-    if (this.longitudeMax < polygon.longitudeMin) { return false; }
+  intersects(polygon) {
+    if (this.latitiudeMax > polygon.latitiudeMin) { return false; }
+    if (this.longitudeMax > polygon.longitudeMin) { return false; }
     return true;
   }
 }

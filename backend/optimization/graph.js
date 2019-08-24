@@ -2,7 +2,7 @@ var createGraph = require('ngraph.graph');
 const GraphCreator = require('./graphCreator');
 const distanceCalculation = require('./../utilities/distanceCalculation');
 
-const maximumVertexSearchRadius = 300;
+const maximumVertexSearchRadius = 200;
 
 class Graph {
 

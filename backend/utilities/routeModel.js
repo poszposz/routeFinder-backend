@@ -1,13 +1,13 @@
 require('../extensions/array');
 const uuidv4 = require('./UUIDGenerator');
 
-const longestRouteAllowed = 300;
+const longestRouteAllowed = 200;
 
 const maximumSegmentLength = 10;
 
 class Route {
 
-  constructor(id, name, category, segments, isBikeRoute) {
+  constructor(id, name, category, segments, isBikeRoute, parentRouteId = null) {
     this.id = id;
 
     this.startPointVertexId = 0;
@@ -30,6 +30,7 @@ class Route {
     this.start = this.segments[0].start;
     this.end = this.segments[this.segments.length - 1].end;
     this.isBikeRoute = isBikeRoute;
+    this.parentRouteId = parentRouteId;
   }
 
   normalizeSegments(segments) {
@@ -59,7 +60,7 @@ class Route {
     const maximumSegmentsPerRoute = longestRouteAllowed / maximumSegmentLength;
     let segments = this.segments.chunk(maximumSegmentsPerRoute);
     return segments.map((segmentChunk) => {
-      let route = new Route(uuidv4(), this.name, this.category, segmentChunk, this.isBikeRoute);
+      let route = new Route(uuidv4(), this.name, this.category, segmentChunk, this.isBikeRoute, this.id);
       return route;
     });
   }

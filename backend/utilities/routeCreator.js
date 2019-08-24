@@ -108,6 +108,7 @@ function obtainCompleteDijkstraRoute(graph, decodedStartLocation, decodedEndLoca
     });
   });
   var end = new Date() - start
+  console.log(`Executed Dijkstra: ${(possibleStartVertices.length * possibleEndVertices.length)} times.`);
   console.info('Dijkstra execution time: %dms', end)
 
   let stripped = stripUnrelevantStartingSegments(bestNavigationRoute.routes);
@@ -157,6 +158,7 @@ function obtainCompleteAStarRoute(graph, decodedStartLocation, decodedEndLocatio
     });
   });
   var end = new Date() - start
+  console.log(`Executed A*: ${(possibleStartVertices.length * possibleEndVertices.length)} times.`);
   console.info('A Star execution time: %dms', end)
 
   bestNavigationRoute.routes = stripUnrelevantEndingSegments(bestNavigationRoute.routes);

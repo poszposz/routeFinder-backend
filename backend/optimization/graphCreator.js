@@ -1,6 +1,7 @@
 const distanceCalculation = require('./../utilities/distanceCalculation');
 const Vertex = require('./vertex');
 const Route = require('../utilities/routeModel');
+const Polygon = require('../utilities/polygon');
 var uuidv4 = require('../utilities/UUIDGenerator');
 
 const SEARCH_AROUND_START = "SEARCH_AROUND_START";
@@ -14,6 +15,8 @@ const desiredDistanceThreshold = 30;
 const desiredNearbyDistanceThreshold = 30;
 
 const desiredVertexMergeDistanceThreshold = 15;
+
+const desiredIntersectionDistanceThreshold = 15;
 
 const routeNearVertexIgnoreDistance = 3300;
 
@@ -35,6 +38,7 @@ class GraphCreator {
       this.pushVertex(route, SEARCH_AROUND_START);
       this.pushVertex(route, SEARCH_AROUND_END);
     });
+    // this.extractIntersections();
     this.extractNearbySegments();
     this.assignBidirectional();
     this.reassignVertexIds();
@@ -103,6 +107,37 @@ class GraphCreator {
     }
   }
 
+  extractIntersections() {
+    this.routes.forEach((outerRoute) => {
+      this.routes.forEach((innerRoute) => {
+        if (innerRoute.parentRouteId === outerRoute.parentRouteId | innerRoute.id === outerRoute.id) { return; }
+        let outerRoutePolygon = new Polygon(outerRoute.start, outerRoute.end);
+        let innerRoutePolygon = new Polygon(innerRoute.start, innerRoute.end);
+        if (!innerRoutePolygon.intersects(outerRoutePolygon)) { 
+          return; 
+        }
+        let outerRouteSegments = outerRoute.segments;
+        let innerRouteSegments = innerRoute.segments;
+        let matchingOuterSegmentIntersection = undefined;
+        let matchingInnerSegmentIntersection = undefined;
+        let bestDistance = Infinity;
+        outerRouteSegments.forEach(outerRouteSegment => {
+          innerRouteSegments.forEach(innerRouteSegment => {
+            const distance = distanceCalculation.distanceBetweenLocations(outerRouteSegment.start, innerRouteSegment.start);
+            if (distance < bestDistance) {
+              bestDistance = distance;
+              matchingInnerSegmentIntersection = innerRouteSegment;
+              matchingOuterSegmentIntersection = outerRouteSegment;
+            }
+          });
+        });
+        if (bestDistance > 15) { return; }
+        console.log(`Distance: ${bestDistance}`);
+        console.log(`Found intersection between ${outerRoute.name} and ${innerRoute.name}`);
+      });
+    });
+  }
+
   extractNearbySegments() {    
     // We have all segments from routes. Now we have to iterate via all vertices.
     // We have to iterate through all routes and for each of them find a segment that is closest to the vertex.
@@ -127,32 +162,36 @@ class GraphCreator {
         // If none found, just return from the method.
         if (eligibleSegment === undefined) { return; }
         // We split the currently iterated route via given segment.
-        let splitted = route.splitBy(eligibleSegment);
-        let prefixedSegments = splitted[1];
-        let suffixedSegments = splitted[0];
-        if (prefixedSegments.length === 0 | suffixedSegments.length === 0) { return; }
-        // We have to create two routes from prefixed and suffixed segments.
-        let prefixedRoute = new Route(uuidv4(), route.name, route.category, prefixedSegments, route.isBikeRoute);
-        let suffixedRoute = new Route(uuidv4(), route.name, route.category, suffixedSegments, route.isBikeRoute);
-        // To that point all should be good.
-        
-        // We have to find a vertices this route is starting and ending with.
-        let startVertex = this.vertices.find((vertex) => vertex.id === route.startPointVertexId);
-        let endVertex = this.vertices.find((vertex) => vertex.id === route.endPointVertexId);
-
-        // We assign properly the starting and endings for prefixed and suffixed routes.
-        prefixedRoute.startPointVertexId = startVertex.id;
-        prefixedRoute.endPointVertexId = vertex.id;
-        suffixedRoute.startPointVertexId = vertex.id;
-        suffixedRoute.endPointVertexId = endVertex.id;
-
-        // We properly add the newly created routes to starting, ending and middle vertices.
-        startVertex.addOutcomingRoutes([prefixedRoute]);
-        endVertex.addIncomingRoutes([suffixedRoute]);
-        vertex.addIncomingRoutes([prefixedRoute]);
-        vertex.addOutcomingRoutes([suffixedRoute]);
+        this.splitRouteBySegmentNearVertex(route, eligibleSegment, vertex);
       });
     });
+  }
+
+  splitRouteBySegmentNearVertex(route, eligibleSegment, vertex) {
+    let splitted = route.splitBy(eligibleSegment);
+    let prefixedSegments = splitted[1];
+    let suffixedSegments = splitted[0];
+    if (prefixedSegments.length === 0 | suffixedSegments.length === 0) { return; }
+    // We have to create two routes from prefixed and suffixed segments.
+    let prefixedRoute = new Route(uuidv4(), route.name, route.category, prefixedSegments, route.isBikeRoute);
+    let suffixedRoute = new Route(uuidv4(), route.name, route.category, suffixedSegments, route.isBikeRoute);
+    // To that point all should be good.
+    
+    // We have to find a vertices this route is starting and ending with.
+    let startVertex = this.vertices.find((vertex) => vertex.id === route.startPointVertexId);
+    let endVertex = this.vertices.find((vertex) => vertex.id === route.endPointVertexId);
+
+    // We assign properly the starting and endings for prefixed and suffixed routes.
+    prefixedRoute.startPointVertexId = startVertex.id;
+    prefixedRoute.endPointVertexId = vertex.id;
+    suffixedRoute.startPointVertexId = vertex.id;
+    suffixedRoute.endPointVertexId = endVertex.id;
+
+    // We properly add the newly created routes to starting, ending and middle vertices.
+    startVertex.addOutcomingRoutes([prefixedRoute]);
+    endVertex.addIncomingRoutes([suffixedRoute]);
+    vertex.addIncomingRoutes([prefixedRoute]);
+    vertex.addOutcomingRoutes([suffixedRoute]);
   }
 
   pushVertex(route, searchType) {
