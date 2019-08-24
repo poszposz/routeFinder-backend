@@ -47,10 +47,6 @@ function relevantEndSegments(route, nextRoute) {
   let nearest = sortedSegments[0];
   let nearestSegmentIndex = route.segments.findIndex(segment => segment.id === nearest.id);
   
-  console.log(`Nearest end segment id: ${nearest.id}`);
-  console.log(`Nearest end segment index: ${nearestSegmentIndex}`);
-  console.log(`All segments: ${route.segments.length}`);
-  
   return route.segments.slice(0, nearestSegmentIndex);
 }
 
@@ -85,11 +81,6 @@ function mergeRoutes(routes) {
     count += 1;
   });
   return mergedRoutes;
-}
-
-function isSubset(mainRouteDijkstraArray, routeDijkstraArray) {
-  let isSubset = routeDijkstraArray.every(element => mainRouteDijkstraArray.includes(element));
-  return isSubset;
 }
 
 function obtainCompleteDijkstraRoute(graph, decodedStartLocation, decodedEndLocation) {
@@ -160,12 +151,56 @@ function obtainCompleteAStarRoute(graph, decodedStartLocation, decodedEndLocatio
   var end = new Date() - start
   console.info('A Star execution time: %dms', end)
 
-  let stripped = stripUnrelevantEndingSegments(bestNavigationRoute.routes);
-  stripped = stripUnrelevantStartingSegments(stripped);
-  return {
-    'allRoutes': mergeRoutes(stripped),
-    'bestNavigationRoute': bestNavigationRoute
-  };
+  bestNavigationRoute.routes = stripUnrelevantEndingSegments(bestNavigationRoute.routes);
+  bestNavigationRoute.routes = stripUnrelevantStartingSegments(bestNavigationRoute.routes);
+  bestNavigationRoute.routes = mergeRoutes(bestNavigationRoute.routes);
+  optimizeRouteEndings(bestNavigationRoute);
+  return bestNavigationRoute;
+}
+
+function optimizeRouteEndings(navigationRoute) {
+  let offset = 5;
+
+  let start = navigationRoute.startLocation.location;
+  let startingRoute = navigationRoute.routes[0];
+  let sortedStartSegments = startingRoute.segments.concat().sort((segment1, segment2) => {
+    return distanceCalculation.distanceBetweenLocations(start, segment1.start) - distanceCalculation.distanceBetweenLocations(start, segment2.start);
+  });
+  let nearestStart = sortedStartSegments[0];
+  let nearestStartDistanceWithOffset = distanceCalculation.distanceBetweenLocations(start, nearestStart.start) + offset;
+  let bestStartSegment;
+  startingRoute.segments.forEach(segment => {
+    let distance = distanceCalculation.distanceBetweenLocations(start, segment.start)
+    if (distance < nearestStartDistanceWithOffset) {
+      bestStartSegment = segment;
+    }
+  });
+  const bestStartSegmentIndex = startingRoute.segments.findIndex(segment => segment === bestStartSegment);
+  // Iterate through all vertices after the nearest start and find the last one that is no more than 10m further than nearest.
+  startingRoute.segments = startingRoute.segments.slice(bestStartSegmentIndex, startingRoute.segments.length);
+  startingRoute.adjustEndings();
+
+  let end = navigationRoute.endLocation.location;
+  let endingRoute = navigationRoute.routes[navigationRoute.routes.length - 1];
+  let sortedEndSegments = endingRoute.segments.concat().sort((segment1, segment2) => {
+    return distanceCalculation.distanceBetweenLocations(end, segment1.end) - distanceCalculation.distanceBetweenLocations(end, segment2.end);
+  });
+  let nearestEnd = sortedEndSegments[0];
+  let nearestEndDistanceWithOffset = distanceCalculation.distanceBetweenLocations(end, nearestEnd.end) + offset;
+  let bestEndSegment;
+  endingRoute.segments.concat().reverse().forEach(segment => {
+    let distance = distanceCalculation.distanceBetweenLocations(end, segment.end)
+    if (distance < nearestEndDistanceWithOffset) {
+      bestEndSegment = segment;
+    }
+  });
+  const bestEndSegmentIndex = endingRoute.segments.findIndex(segment => segment.id === bestEndSegment.id);
+  console.log(`Best segment index: ${bestEndSegmentIndex}`);
+  console.log(`All segments: ${endingRoute.segments.length}`);
+  
+  // Iterate through all vertices after the nearest start and find the last one that is no more than 10m further than nearest.
+  endingRoute.segments = endingRoute.segments.slice(0, endingRoute.segments.length - 1 - bestEndSegmentIndex);
+  endingRoute.adjustEndings();
 }
 
 module.exports = {
@@ -174,5 +209,4 @@ module.exports = {
   mergeRoutes,
   stripUnrelevantStartingSegments,
   stripUnrelevantEndingSegments,
-  isSubset,
 };

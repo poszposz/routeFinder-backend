@@ -80,8 +80,8 @@ router.get('/findOptimizedAStar', async function(req, res, next) {
     let response = {
       'startLocation': decodedStartLocation,
       'endLocation': decodedEndLocation,
-      'totalLength': result.bestNavigationRoute.totalLength,
-      'routes':  result.allRoutes,
+      'totalLength': result.totalLength,
+      'routes':  result.routes,
     };
     res.json(response);
   } catch (error) {
