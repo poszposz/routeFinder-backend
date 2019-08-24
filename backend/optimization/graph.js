@@ -50,6 +50,7 @@ class Graph {
       let filtered = sorted.filter((vertex) => distanceCalculation.distanceBetweenLocations(best.centerLocation, vertex.centerLocation) < maximumVertexSearchRadius);
       return filtered.map((vertex) => {
         return {
+          'isBest': (vertex === best),
           'vertex': vertex,
           'reachDistance': distanceCalculation.distanceBetweenLocations(vertex.centerLocation, location) 
         };

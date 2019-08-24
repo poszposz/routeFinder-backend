@@ -128,9 +128,17 @@ function obtainCompleteAStarRoute(graph, decodedStartLocation, decodedEndLocatio
   const aStarGraph = graph.genrateAStarGraph();
   possibleStartVertices.forEach((startVertexData) => {
     possibleEndVertices.forEach((endVertexData) => {
+      let bestVertexCompensationWeight = 1;
+      // Add compensation to try to favorize the route theat uses nearest start and end vertex.
+      if (startVertexData.isBest) {
+        bestVertexCompensationWeight -= 0.1;
+      }
+      if (endVertexData.isBest) {
+        bestVertexCompensationWeight -= 0.1;
+      }
       let pathFinder = path.aStar(aStarGraph, {
         distance(fromNode, toNode, link) {
-          return link.data.weight;
+          return link.data.weight * bestVertexCompensationWeight;
         },
         heuristic(fromNode, toNode) {
           return distanceCalculation.distanceBetweenLocations(toNode.data.vertex.centerLocation, decodedEndLocation.location);
@@ -176,7 +184,7 @@ function optimizeRouteEndings(navigationRoute) {
     }
   });
   const bestStartSegmentIndex = startingRoute.segments.findIndex(segment => segment === bestStartSegment);
-  // Iterate through all vertices after the nearest start and find the last one that is no more than 10m further than nearest.
+
   startingRoute.segments = startingRoute.segments.slice(bestStartSegmentIndex, startingRoute.segments.length);
   startingRoute.adjustEndings();
 
@@ -195,10 +203,7 @@ function optimizeRouteEndings(navigationRoute) {
     }
   });
   const bestEndSegmentIndex = endingRoute.segments.findIndex(segment => segment.id === bestEndSegment.id);
-  console.log(`Best segment index: ${bestEndSegmentIndex}`);
-  console.log(`All segments: ${endingRoute.segments.length}`);
-  
-  // Iterate through all vertices after the nearest start and find the last one that is no more than 10m further than nearest.
+
   endingRoute.segments = endingRoute.segments.slice(0, endingRoute.segments.length - 1 - bestEndSegmentIndex);
   endingRoute.adjustEndings();
 }
