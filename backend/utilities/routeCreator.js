@@ -94,12 +94,22 @@ function obtainCompleteDijkstraRoute(graph, decodedStartLocation, decodedEndLoca
   const dijkstra = new Dijkstra(query);
   possibleStartVertices.forEach((startVertexData) => {
     possibleEndVertices.forEach((endVertexData) => {
+      let bestVertexCompensationWeight = 1;
+      // Add compensation to try to favorize the route theat uses nearest start and end vertex.
+      if (startVertexData.isBest) {
+        bestVertexCompensationWeight -= 0.1;
+      }
+      if (endVertexData.isBest) {
+        bestVertexCompensationWeight -= 0.1;
+      }
       const shortestRoute = dijkstra.findShortestPath(`${startVertexData.vertex.id}`, `${endVertexData.vertex.id}`);
       if (shortestRoute === null) {
         return;
       }
       const combined = graph.parseDijkstraResult(shortestRoute);
       let navigationRoute = new NavigationRoute(decodedStartLocation, decodedEndLocation, startVertexData.vertex, endVertexData.vertex, combined);
+      navigationRoute.totalWeight = navigationRoute.totalWeight * bestVertexCompensationWeight;
+      console.log(`Found weight: ${navigationRoute.totalWeight}`);
       if (bestNavigationRoute === undefined) {
         bestNavigationRoute = navigationRoute;
       } else if (navigationRoute.totalWeight < bestNavigationRoute.totalWeight) {
@@ -110,14 +120,14 @@ function obtainCompleteDijkstraRoute(graph, decodedStartLocation, decodedEndLoca
   var end = new Date() - start
   console.log(`Executed Dijkstra: ${(possibleStartVertices.length * possibleEndVertices.length)} times.`);
   console.info('Dijkstra execution time: %dms', end)
+  console.log(`Best route length: ${bestNavigationRoute.totalLength}`);
+  console.log(`Best route weight: ${bestNavigationRoute.totalWeight}`);
 
   bestNavigationRoute.routes = stripUnrelevantEndingSegments(bestNavigationRoute.routes);
   bestNavigationRoute.routes = stripUnrelevantStartingSegments(bestNavigationRoute.routes);
   bestNavigationRoute.routes = mergeRoutes(bestNavigationRoute.routes);
   bestNavigationRoute.loadTotalLength();
   bestNavigationRoute.loadTotalWeight();
-  console.log(`Best route length: ${bestNavigationRoute.totalLength}`);
-  console.log(`Best route weight: ${bestNavigationRoute.totalWeight}`);
   optimizeRouteEndings(bestNavigationRoute);
   
   return bestNavigationRoute;
@@ -154,9 +164,10 @@ function obtainCompleteAStarRoute(graph, decodedStartLocation, decodedEndLocatio
       
       const combined = graph.parseDijkstraResult(shortestRouteVeritceIds);
       let navigationRoute = new NavigationRoute(decodedStartLocation, decodedEndLocation, startVertexData.vertex, endVertexData.vertex, combined);
+      console.log(`Found weight(mapping to Dijsktra results): ${navigationRoute.totalWeight * bestVertexCompensationWeight}, real: ${navigationRoute.totalWeight}`);
       if (bestNavigationRoute === undefined) {
         bestNavigationRoute = navigationRoute;
-      } else if (navigationRoute.totalLength < bestNavigationRoute.totalLength) {
+      } else if (navigationRoute.totalWeight < bestNavigationRoute.totalWeight) {
         bestNavigationRoute = navigationRoute;
       }
     });
@@ -164,13 +175,13 @@ function obtainCompleteAStarRoute(graph, decodedStartLocation, decodedEndLocatio
   var end = new Date() - start
   console.log(`Executed A*: ${(possibleStartVertices.length * possibleEndVertices.length)} times.`);
   console.info('A Star execution time: %dms', end)
+  console.log(`Best route length: ${bestNavigationRoute.totalLength}`);
+  console.log(`Best route weight: ${bestNavigationRoute.totalWeight}`);
 
   bestNavigationRoute.routes = stripUnrelevantEndingSegments(bestNavigationRoute.routes);
   bestNavigationRoute.routes = stripUnrelevantStartingSegments(bestNavigationRoute.routes);
   bestNavigationRoute.routes = mergeRoutes(bestNavigationRoute.routes);
   bestNavigationRoute.loadTotalWeight();
-  console.log(`Best route length: ${bestNavigationRoute.totalLength}`);
-  console.log(`Best route weight: ${bestNavigationRoute.totalWeight}`);
   bestNavigationRoute.loadTotalLength();
   optimizeRouteEndings(bestNavigationRoute);
 

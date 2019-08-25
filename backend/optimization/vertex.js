@@ -27,7 +27,7 @@ class Vertex {
       let distanceToEnd = distanceCalculation.distanceBetweenLocations(route.start, this.centerLocation);
       distanceToEnd = distanceToEnd <= 10 ? 0 : distanceToEnd;
       const total = distanceToStart + distanceToEnd;
-      const weight = (route.totalLength * route.weightMultiplier) + (total * 10);
+      const weight = (route.totalLength * route.weightMultiplier) + (total * 1.5);
       route.totalWeight = weight;
     });
   }
@@ -65,6 +65,7 @@ class Vertex {
     });
     if (foundRoutes.length === 0) { return; }
     this.incomingRoutes = this.incomingRoutes.concat(foundRoutes);
+    this.assingTotalWeights();
   }
 
   addOutcomingRoutes(routes) {
@@ -77,6 +78,7 @@ class Vertex {
     });
     if (foundRoutes.length === 0) { return; }
     this.outcomingRoutes = this.outcomingRoutes.concat(foundRoutes);
+    this.assingTotalWeights();
   }
 
   debugDescription() {

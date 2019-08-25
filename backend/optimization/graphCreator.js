@@ -16,8 +16,6 @@ const desiredNearbyDistanceThreshold = 30;
 
 const desiredVertexMergeDistanceThreshold = 15;
 
-const desiredIntersectionDistanceThreshold = 15;
-
 const routeNearVertexIgnoreDistance = 3300;
 
 class GraphCreator {

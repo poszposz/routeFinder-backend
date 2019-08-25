@@ -22,26 +22,23 @@ class Route {
     //   this.bidirectional = 0;
     // }
     let originalSegments = segments;
-    this.totalLength = segments.reduce((previous, next) => {
-      return previous + next.length;
-    }, 0);
+    this.totalLength = segments.reduce(((previous, next) => previous + next.length ), 0);
     this.totalWeight = this.totalLength;
     this.segments = this.normalizeSegments(originalSegments);
     this.start = this.segments[0].start;
     this.end = this.segments[this.segments.length - 1].end;
     this.isBikeRoute = isBikeRoute;
     this.parentRouteId = parentRouteId;
-    if (this.category.includes('dwr') | this.category.includes('kontrapas')) {
-      this.weightMultiplier = 0.7;
-    } else if (this.category.includes('cpr') | this.category.includes('kontraruch')) {
+    if (this.category.includes('dwr') | this.category.includes('kontrapas') | this.category.includes('cpr') | this.category.includes('kontraruch')) {
       this.weightMultiplier = 0.8;
     } else if (this.category.includes('c16t22')) {
       this.weightMultiplier = 0.9;
     } else if (!isBikeRoute) {
-      this.weightMultiplier = 1.2;
+      this.weightMultiplier = 1.1;
     } else {
       this.weightMultiplier = 1;
     }
+    this.totalWeight = this.totalLength * this.weightMultiplier;
   }
 
   normalizeSegments(segments) {
@@ -105,6 +102,7 @@ class Route {
     let route = new Route(this.id, this.name, this.category, this.segments, this.isBikeRoute);
     route.startPointVertexId = this.startPointVertexId;
     route.endPointVertexId = this.endPointVertexId;
+    route.totalWeight = this.totalWeight;
     return route;
   }
 
