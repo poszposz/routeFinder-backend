@@ -111,16 +111,20 @@ function obtainCompleteDijkstraRoute(graph, decodedStartLocation, decodedEndLoca
   console.log(`Executed Dijkstra: ${(possibleStartVertices.length * possibleEndVertices.length)} times.`);
   console.info('Dijkstra execution time: %dms', end)
 
-  let stripped = stripUnrelevantStartingSegments(bestNavigationRoute.routes);
-  stripped = stripUnrelevantEndingSegments(stripped);
-  return {
-    'allRoutes': mergeRoutes(stripped),
-    'bestNavigationRoute': bestNavigationRoute
-  };
+  bestNavigationRoute.routes = stripUnrelevantEndingSegments(bestNavigationRoute.routes);
+  bestNavigationRoute.routes = stripUnrelevantStartingSegments(bestNavigationRoute.routes);
+  bestNavigationRoute.routes = mergeRoutes(bestNavigationRoute.routes);
+  bestNavigationRoute.loadTotalLength();
+  bestNavigationRoute.loadTotalWeight();
+  console.log(`Best route length: ${bestNavigationRoute.totalLength}`);
+  console.log(`Best route weight: ${bestNavigationRoute.totalWeight}`);
+  optimizeRouteEndings(bestNavigationRoute);
+  
+  return bestNavigationRoute;
 }
 
 function obtainCompleteAStarRoute(graph, decodedStartLocation, decodedEndLocation) {
-
+  
   const possibleStartVertices = graph.nearestStartVertices(decodedStartLocation.location);
   const possibleEndVertices = graph.nearestEndVertices(decodedEndLocation.location);
 
@@ -152,7 +156,7 @@ function obtainCompleteAStarRoute(graph, decodedStartLocation, decodedEndLocatio
       let navigationRoute = new NavigationRoute(decodedStartLocation, decodedEndLocation, startVertexData.vertex, endVertexData.vertex, combined);
       if (bestNavigationRoute === undefined) {
         bestNavigationRoute = navigationRoute;
-      } else if (navigationRoute.totalWeight < bestNavigationRoute.totalWeight) {
+      } else if (navigationRoute.totalLength < bestNavigationRoute.totalLength) {
         bestNavigationRoute = navigationRoute;
       }
     });
@@ -164,7 +168,12 @@ function obtainCompleteAStarRoute(graph, decodedStartLocation, decodedEndLocatio
   bestNavigationRoute.routes = stripUnrelevantEndingSegments(bestNavigationRoute.routes);
   bestNavigationRoute.routes = stripUnrelevantStartingSegments(bestNavigationRoute.routes);
   bestNavigationRoute.routes = mergeRoutes(bestNavigationRoute.routes);
+  bestNavigationRoute.loadTotalWeight();
+  console.log(`Best route length: ${bestNavigationRoute.totalLength}`);
+  console.log(`Best route weight: ${bestNavigationRoute.totalWeight}`);
+  bestNavigationRoute.loadTotalLength();
   optimizeRouteEndings(bestNavigationRoute);
+
   return bestNavigationRoute;
 }
 

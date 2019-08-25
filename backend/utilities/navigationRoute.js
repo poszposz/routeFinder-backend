@@ -19,7 +19,8 @@ class NavigationRoute {
   loadTotalWeight() {
     let reachStartDistance = distanceCalculation.distanceBetweenLocations(this.startVertex.centerLocation, this.startLocation);
     let reachEndDistance = distanceCalculation.distanceBetweenLocations(this.endVertex.centerLocation, this.endLocation);
-    return this.totalLength + ((reachStartDistance + reachEndDistance) * 20)
+    let routesWeight = this.routes.reduce(((currentTotal, route) => currentTotal + route.totalWeight), 0);
+    this.totalWeight = routesWeight + ((reachStartDistance + reachEndDistance) * 10);
   }
 }
 

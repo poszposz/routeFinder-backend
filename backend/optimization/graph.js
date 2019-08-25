@@ -2,7 +2,7 @@ var createGraph = require('ngraph.graph');
 const GraphCreator = require('./graphCreator');
 const distanceCalculation = require('./../utilities/distanceCalculation');
 
-const maximumVertexSearchRadius = 200;
+const maximumVertexSearchRadius = 150;
 const maximumVertexExtendedSearchRadius = 300;
 
 class Graph {
@@ -30,22 +30,14 @@ class Graph {
     const possibleStartVertices = this.vertices.filter((vertex) => {
       return vertex.outcomingRoutes.length > 0
     });
-    let foundVertices = this.nearestVertices(possibleStartVertices, location, maximumVertexSearchRadius);
-    if (foundVertices < 3) {
-      foundVertices = this.nearestVertices(possibleStartVertices, location, maximumVertexExtendedSearchRadius);
-    }
-    return foundVertices;
+    return this.nearestVertices(possibleStartVertices, location, maximumVertexSearchRadius);
   }
 
   nearestEndVertices(location) {
     const possibleEndVertices = this.vertices.filter((vertex) => {
       return vertex.incomingRoutes.length > 0
     });
-    let foundVertices = this.nearestVertices(possibleEndVertices, location, maximumVertexSearchRadius);
-    if (foundVertices < 3) {
-      foundVertices = this.nearestVertices(possibleEndVertices, location, maximumVertexExtendedSearchRadius);
-    }
-    return foundVertices;
+    return this.nearestVertices(possibleEndVertices, location, maximumVertexSearchRadius);
   }
 
   nearestVertices(vertices, location, radius) {

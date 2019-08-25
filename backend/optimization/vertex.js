@@ -17,12 +17,11 @@ class Vertex {
     this.incomingRoutes = incomingRoutes === undefined ? [] : incomingRoutes;
     this.outcomingRoutes = outcomingRoutes === undefined ? [] : outcomingRoutes;
 
-    this.assingTotalWeights(this.incomingRoutes);
-    this.assingTotalWeights(this.outcomingRoutes);
+    this.assingTotalWeights();
   }
 
-  assingTotalWeights(routes) {
-    routes.forEach((route) => {
+  assingTotalWeights() {
+    [this.incomingRoutes, this.outcomingRoutes].flatten().forEach((route) => {
       let distanceToStart = distanceCalculation.distanceBetweenLocations(route.start, this.centerLocation);
       distanceToStart = distanceToStart <= 10 ? 0 : distanceToStart;
       let distanceToEnd = distanceCalculation.distanceBetweenLocations(route.start, this.centerLocation);
