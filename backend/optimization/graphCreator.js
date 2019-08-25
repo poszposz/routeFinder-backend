@@ -18,7 +18,7 @@ const desiredVertexMergeDistanceThreshold = 15;
 
 const routeNearVertexIgnoreDistance = 3300;
 
-const nearbySegmentExceptionRoutes = ['Reymonta', 'Saska', 'most kotlarski', 'Zielinskiego', 'przejazd rowerowy przez Zielinskiego', 'ul. Zielinskiego i Most Zwierzyniecki', 'Most Zwierzyniecki', 'Konopnickiej', 'Bulwary pod Wawelem', 'Most Grunwaldzki', 'most grunwaldzki'];
+const nearbySegmentExceptionRoutes = ['Josepha Conrada', 'mogilska', '29 listopada', 'Armii Krajowej', 'Jasnogorska', 'Reymonta', 'Saska', 'most kotlarski', 'Zielinskiego', 'przejazd rowerowy przez Zielinskiego', 'ul. Zielinskiego i Most Zwierzyniecki', 'Most Zwierzyniecki', 'Konopnickiej', 'Bulwary pod Wawelem', 'Most Grunwaldzki', 'most grunwaldzki'];
 
 class GraphCreator {
 
