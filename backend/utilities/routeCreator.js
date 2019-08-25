@@ -113,6 +113,7 @@ function obtainCompleteDijkstraRoute(graph, decodedStartLocation, decodedEndLoca
   console.info('Dijkstra execution time: %dms', end)
   console.log(`Best route length: ${bestNavigationRoute.totalLength}`);
   console.log(`Best route weight: ${bestNavigationRoute.totalWeight}`);
+  console.log(`Best route weight route only: ${bestNavigationRoute.routeWeight}`);
 
   bestNavigationRoute.routes = stripUnrelevantEndingSegments(bestNavigationRoute.routes);
   bestNavigationRoute.routes = stripUnrelevantStartingSegments(bestNavigationRoute.routes);

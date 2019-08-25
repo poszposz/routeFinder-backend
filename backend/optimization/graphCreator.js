@@ -12,13 +12,13 @@ const SEARCH_OUTCOMING = "SEARCH_OUTCOMING";
 
 const desiredDistanceThreshold = 30;
 
-const desiredNearbyDistanceThreshold = 30;
+const desiredNearbyDistanceThreshold = 40;
 
 const desiredVertexMergeDistanceThreshold = 15;
 
 const routeNearVertexIgnoreDistance = 3300;
 
-const nearbySegmentExceptionRoutes = ['Reymonta'];
+const nearbySegmentExceptionRoutes = ['Reymonta', 'Saska', 'most kotlarski', 'Zielinskiego', 'przejazd rowerowy przez Zielinskiego', 'ul. Zielinskiego i Most Zwierzyniecki', 'Most Zwierzyniecki', 'Konopnickiej', 'Bulwary pod Wawelem', 'Most Grunwaldzki', 'most grunwaldzki'];
 
 class GraphCreator {
 
