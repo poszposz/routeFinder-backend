@@ -31,6 +31,17 @@ class Route {
     this.end = this.segments[this.segments.length - 1].end;
     this.isBikeRoute = isBikeRoute;
     this.parentRouteId = parentRouteId;
+    if (this.category.includes('dwr') | this.category.includes('kontrapas')) {
+      this.weightMultiplier = 0.7;
+    } else if (this.category.includes('cpr') | this.category.includes('kontraruch')) {
+      this.weightMultiplier = 0.8;
+    } else if (this.category.includes('c16t22')) {
+      this.weightMultiplier = 0.9;
+    } else if (!isBikeRoute) {
+      this.weightMultiplier = 1.2;
+    } else {
+      this.weightMultiplier = 1;
+    }
   }
 
   normalizeSegments(segments) {

@@ -28,7 +28,7 @@ class Vertex {
       let distanceToEnd = distanceCalculation.distanceBetweenLocations(route.start, this.centerLocation);
       distanceToEnd = distanceToEnd <= 10 ? 0 : distanceToEnd;
       const total = distanceToStart + distanceToEnd;
-      const weight = (route.totalLength * (route.isBikeRoute ? 1 : 1.2)) + (total * 10);
+      const weight = (route.totalLength * route.weightMultiplier) + (total * 10);
       route.totalWeight = weight;
     });
   }

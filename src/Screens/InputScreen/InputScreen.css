@@ -25,6 +25,10 @@
   font-size: 64pt
 }
 
+.label-small {
+  font-size: 10pt
+}
+
 .input {
   width: 200pt;
   height: 20pt;
