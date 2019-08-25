@@ -18,6 +18,8 @@ const desiredVertexMergeDistanceThreshold = 15;
 
 const routeNearVertexIgnoreDistance = 3300;
 
+const nearbySegmentExceptionRoutes = ['Reymonta'];
+
 class GraphCreator {
 
   constructor(routes) {
@@ -143,6 +145,8 @@ class GraphCreator {
       this.routes.forEach((route) => {
         // We ignore all the routes that starts or ends in currently iterated vertex.
         if (route.startPointVertexId === vertex.id | route.endPointVertexId === vertex.id) { return; }
+        // We ignore all routes that are listed in exceptions.
+        if (nearbySegmentExceptionRoutes.includes(route.name)) { return; }
         // We eliminate all routes that are incoming or outcoming from a currently iterated vertex.
         // They can have very short first segments and create false data.
         const outcomingRouteIds = vertex.outcomingRoutes.map((route) => route.id );
