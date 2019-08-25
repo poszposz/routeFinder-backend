@@ -94,22 +94,13 @@ function obtainCompleteDijkstraRoute(graph, decodedStartLocation, decodedEndLoca
   const dijkstra = new Dijkstra(query);
   possibleStartVertices.forEach((startVertexData) => {
     possibleEndVertices.forEach((endVertexData) => {
-      let bestVertexCompensationWeight = 1;
-      // Add compensation to try to favorize the route theat uses nearest start and end vertex.
-      if (startVertexData.isBest) {
-        bestVertexCompensationWeight -= 0.1;
-      }
-      if (endVertexData.isBest) {
-        bestVertexCompensationWeight -= 0.1;
-      }
       const shortestRoute = dijkstra.findShortestPath(`${startVertexData.vertex.id}`, `${endVertexData.vertex.id}`);
       if (shortestRoute === null) {
         return;
       }
       const combined = graph.parseDijkstraResult(shortestRoute);
       let navigationRoute = new NavigationRoute(decodedStartLocation, decodedEndLocation, startVertexData.vertex, endVertexData.vertex, combined);
-      navigationRoute.totalWeight = navigationRoute.totalWeight * bestVertexCompensationWeight;
-      console.log(`Found weight: ${navigationRoute.totalWeight}`);
+      console.log(`Found weight Dijkstra: ${navigationRoute.totalWeight}`);
       if (bestNavigationRoute === undefined) {
         bestNavigationRoute = navigationRoute;
       } else if (navigationRoute.totalWeight < bestNavigationRoute.totalWeight) {
@@ -143,17 +134,9 @@ function obtainCompleteAStarRoute(graph, decodedStartLocation, decodedEndLocatio
   const aStarGraph = graph.genrateAStarGraph();
   possibleStartVertices.forEach((startVertexData) => {
     possibleEndVertices.forEach((endVertexData) => {
-      let bestVertexCompensationWeight = 1;
-      // Add compensation to try to favorize the route theat uses nearest start and end vertex.
-      if (startVertexData.isBest) {
-        bestVertexCompensationWeight -= 0.1;
-      }
-      if (endVertexData.isBest) {
-        bestVertexCompensationWeight -= 0.1;
-      }
       let pathFinder = path.aStar(aStarGraph, {
         distance(fromNode, toNode, link) {
-          return link.data.weight * bestVertexCompensationWeight;
+          return link.data.weight;
         },
         heuristic(fromNode, toNode) {
           return distanceCalculation.distanceBetweenLocations(toNode.data.vertex.centerLocation, decodedEndLocation.location);
@@ -164,7 +147,7 @@ function obtainCompleteAStarRoute(graph, decodedStartLocation, decodedEndLocatio
       
       const combined = graph.parseDijkstraResult(shortestRouteVeritceIds);
       let navigationRoute = new NavigationRoute(decodedStartLocation, decodedEndLocation, startVertexData.vertex, endVertexData.vertex, combined);
-      console.log(`Found weight(mapping to Dijsktra results): ${navigationRoute.totalWeight * bestVertexCompensationWeight}, real: ${navigationRoute.totalWeight}`);
+      console.log(`Found weight A*: ${navigationRoute.totalWeight}`);
       if (bestNavigationRoute === undefined) {
         bestNavigationRoute = navigationRoute;
       } else if (navigationRoute.totalWeight < bestNavigationRoute.totalWeight) {

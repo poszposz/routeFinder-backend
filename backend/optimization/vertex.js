@@ -21,14 +21,29 @@ class Vertex {
   }
 
   assingTotalWeights() {
-    [this.incomingRoutes, this.outcomingRoutes].flatten().forEach((route) => {
+    this.assignEndingWeights(this.incomingRoutes);
+    this.assignStartingWeights(this.outcomingRoutes);
+  }
+
+  assignEndingWeights(routes) {
+    routes.forEach((route) => {
+      if (route.hasAssignedEndingWeight) { return; }
+      let distanceToEnd = distanceCalculation.distanceBetweenLocations(route.end, this.centerLocation);
+      distanceToEnd = distanceToEnd <= 10 ? 0 : distanceToEnd;
+      const weight = (route.totalLength * route.weightMultiplier) + (distanceToEnd * 2);
+      route.totalWeight = weight;
+      route.hasAssignedEndingWeight = true;
+    });
+  }
+
+  assignStartingWeights(routes) {
+    routes.forEach((route) => {
+      if (route.hasAssignedStartingWeight) { return; }
       let distanceToStart = distanceCalculation.distanceBetweenLocations(route.start, this.centerLocation);
       distanceToStart = distanceToStart <= 10 ? 0 : distanceToStart;
-      let distanceToEnd = distanceCalculation.distanceBetweenLocations(route.start, this.centerLocation);
-      distanceToEnd = distanceToEnd <= 10 ? 0 : distanceToEnd;
-      const total = distanceToStart + distanceToEnd;
-      const weight = (route.totalLength * route.weightMultiplier) + (total * 1.5);
+      const weight = (route.totalLength * route.weightMultiplier) + (distanceToStart * 2);
       route.totalWeight = weight;
+      route.hasAssignedStartingWeight = true;
     });
   }
 
@@ -56,6 +71,9 @@ class Vertex {
   }
 
   addIncomingRoutes(routes) {
+    routes.forEach(route => {
+      route.hasAssignedEndingWeight = false;
+    });
     const foundRoutes = routes.filter((route) => {
       if (route.startPointVertexId === this.id & route.endPointVertexId === this.id) { return false; }
       const foundRoute = this.incomingRoutes.find((incomingRoute) => {
@@ -69,6 +87,9 @@ class Vertex {
   }
 
   addOutcomingRoutes(routes) {
+    routes.forEach(route => {
+      route.hasAssignedStartingWeight = false;
+    });
     const foundRoutes = routes.filter((route) => {
       if (route.startPointVertexId === this.id & route.endPointVertexId === this.id) { return false; }
       const foundRoute = this.outcomingRoutes.find((outcomingRoute) => {

@@ -13,12 +13,16 @@ class NavigationRoute {
   }
 
   loadTotalLength() {
-    this.totalLength = this.routes.reduce(((currentTotal, route) => currentTotal + route.totalLength), 0);
+    let reachStartDistance = distanceCalculation.distanceBetweenLocations(this.startVertex.centerLocation, this.startLocation.location);
+    let reachEndDistance = distanceCalculation.distanceBetweenLocations(this.endVertex.centerLocation, this.endLocation.location);
+    let reachWeight = (reachStartDistance + reachEndDistance) * 5;
+    this.totalLength = this.routes.reduce(((currentTotal, route) => currentTotal + route.totalLength), 0) + reachWeight;
   }
 
   loadTotalWeight() {
-    this.totalWeight = this.routes.reduce(((currentTotal, route) => currentTotal + route.totalWeight), 0);    
-
+    let reachStartDistance = distanceCalculation.distanceBetweenLocations(this.startVertex.centerLocation, this.startLocation.location);
+    let reachEndDistance = distanceCalculation.distanceBetweenLocations(this.endVertex.centerLocation, this.endLocation.location);
+    this.totalWeight = this.routes.reduce(((currentTotal, route) => currentTotal + route.totalWeight), 0) + reachStartDistance + reachEndDistance;
   }
 }
 
