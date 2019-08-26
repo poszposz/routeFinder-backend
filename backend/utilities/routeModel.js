@@ -35,6 +35,8 @@ class Route {
       this.weightMultiplier = 0.8;
     } else if (this.category.includes('c16t22')) {
       this.weightMultiplier = 0.9;
+    } else if (this.category.includes('isolation_link')) {
+      this.weightMultiplier = 10;
     } else if (!isBikeRoute) {
       this.weightMultiplier = 1.1;
     } else {

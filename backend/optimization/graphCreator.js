@@ -1,6 +1,7 @@
 const distanceCalculation = require('./../utilities/distanceCalculation');
 const Vertex = require('./vertex');
 const Route = require('../utilities/routeModel');
+const Segment = require('../utilities/segment');
 const Polygon = require('../utilities/polygon');
 var uuidv4 = require('../utilities/UUIDGenerator');
 
@@ -12,7 +13,7 @@ const SEARCH_OUTCOMING = "SEARCH_OUTCOMING";
 
 const desiredDistanceThreshold = 50;
 
-const desiredDistanceThresholdExtended = 100;
+const isolatedVerticesLinkingThreshold = 120;
 
 const desiredNearbyDistanceThreshold = 40;
 
@@ -42,6 +43,7 @@ class GraphCreator {
     });
     // this.extractIntersections();
     this.extractNearbySegments();
+    this.linkIsolatedVertices();
     this.assignBidirectional();
     this.reassignVertexIds();
     return this.vertices;
@@ -196,6 +198,27 @@ class GraphCreator {
     endVertex.addIncomingRoutes([suffixedRoute]);
     vertex.addIncomingRoutes([prefixedRoute]);
     vertex.addOutcomingRoutes([suffixedRoute]);
+  }
+
+  linkIsolatedVertices() {
+      this.vertices.forEach(vertex => {
+        if (vertex.incomingRoutes.length > 1 | vertex.outcomingRoutes.length > 1) { return; }
+        let nearbyVertices = this.vertices.filter(iteratedVertex => {
+          const distance = distanceCalculation.distanceBetweenLocations(iteratedVertex.centerLocation, vertex.centerLocation);
+          return distance < isolatedVerticesLinkingThreshold
+        });
+        // Ignoring isoalted vertices in highly vertex populated areas.
+        if (nearbyVertices.length > 5) { return; }
+        console.log(`Found isolated vertex: ${JSON.stringify(vertex.centerLocation)}`);
+        nearbyVertices.forEach(iteratedVertex => {
+          let linkSegment = new Segment([iteratedVertex.centerLocation.longitude, iteratedVertex.centerLocation.latitude, vertex.centerLocation.longitude, vertex.centerLocation.latitude], 'isolation_link');
+          let route = new Route(uuidv4(), "isolation_link", "isolation_link", [linkSegment], false);
+          iteratedVertex.addIncomingRoutes([route]);
+          route.startPointVertexId = vertex.id;
+          route.endPointVertexId = iteratedVertex.id;
+          vertex.addOutcomingRoutes([route]);
+        });
+      });
   }
 
   pushVertex(route, searchType) {
