@@ -98,7 +98,7 @@ function obtainCompleteDijkstraRoute(graph, decodedStartLocation, decodedEndLoca
       if (shortestRoute === null) {
         return;
       }
-      const combined = graph.parseDijkstraResult(shortestRoute);
+      const combined = graph.parseOptimizationResult(shortestRoute);
       let navigationRoute = new NavigationRoute(decodedStartLocation, decodedEndLocation, startVertexData.vertex, endVertexData.vertex, combined);
       console.log(`Found weight Dijkstra: ${navigationRoute.totalWeight}`);
       if (bestNavigationRoute === undefined) {
@@ -146,7 +146,7 @@ function obtainCompleteAStarRoute(graph, decodedStartLocation, decodedEndLocatio
       const shortestRouteArray = pathFinder.find(startVertexData.vertex.id, endVertexData.vertex.id);
       const shortestRouteVeritceIds = shortestRouteArray.map(data => data.id).reverse();
       
-      const combined = graph.parseDijkstraResult(shortestRouteVeritceIds);
+      const combined = graph.parseOptimizationResult(shortestRouteVeritceIds);
       let navigationRoute = new NavigationRoute(decodedStartLocation, decodedEndLocation, startVertexData.vertex, endVertexData.vertex, combined);
       console.log(`Found weight A*: ${navigationRoute.totalWeight}`);
       if (bestNavigationRoute === undefined) {

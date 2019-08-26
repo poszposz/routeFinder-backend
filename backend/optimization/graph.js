@@ -2,9 +2,6 @@ var createGraph = require('ngraph.graph');
 const GraphCreator = require('./graphCreator');
 const distanceCalculation = require('./../utilities/distanceCalculation');
 
-const maximumVertexSearchRadius = 50;
-const maximumVertexExtendedSearchRadius = 300;
-
 class Graph {
 
   constructor(routes) {
@@ -30,17 +27,17 @@ class Graph {
     const possibleStartVertices = this.vertices.filter((vertex) => {
       return vertex.outcomingRoutes.length > 0
     });
-    return this.nearestVertices(possibleStartVertices, location, maximumVertexSearchRadius);
+    return this.nearestVertices(possibleStartVertices, location);
   }
 
   nearestEndVertices(location) {
     const possibleEndVertices = this.vertices.filter((vertex) => {
       return vertex.incomingRoutes.length > 0
     });
-    return this.nearestVertices(possibleEndVertices, location, maximumVertexSearchRadius);
+    return this.nearestVertices(possibleEndVertices, location);
   }
 
-  nearestVertices(vertices, location, radius) {
+  nearestVertices(vertices, location) {
     const sorted = vertices.sort((first, second) => {
       const firstDistance = distanceCalculation.distanceBetweenLocations(location, first.centerLocation);
       const secondDistance = distanceCalculation.distanceBetweenLocations(location, second.centerLocation);
@@ -48,8 +45,8 @@ class Graph {
     });
     if (sorted.length > 0) {
       let best = sorted[0];
-      let filtered = sorted.filter((vertex) => distanceCalculation.distanceBetweenLocations(best.centerLocation, vertex.centerLocation) < radius);
-      return filtered.map((vertex) => {
+      let slice = sorted.slice(0, 6);
+      return slice.map((vertex) => {
         return {
           'isBest': (vertex === best),
           'vertex': vertex,
@@ -60,7 +57,7 @@ class Graph {
     return null;
   }
 
-  parseDijkstraResult(results) {
+  parseOptimizationResult(results) {
     let count = 0;
     return results.map((vertexId) => {
       if (count === results.count - 2) { return null; }

@@ -48,13 +48,13 @@ class Vertex {
   }
 
   reloadCenterLocation() {
-    const incomingLocations = this.incomingRoutes.map((incomingRoute) => incomingRoute.end);
-    const outcomingLocations =  this.outcomingRoutes.map((outcomingRoutes) => outcomingRoutes.start);
-    const allLocations = incomingLocations.concat(outcomingLocations);
-    let length = allLocations.length !== 0 ? allLocations.length : 1;
-    const latitudeAverage = allLocations.reduce(((accumulator, current) => accumulator + current.latitude), 0) / length;
-    const longitudeAverage = allLocations.reduce(((accumulator, current) => accumulator + current.longitude), 0) / length;
-    this.centerLocation = new LocationCoordinate(latitudeAverage, longitudeAverage);
+    // const incomingLocations = this.incomingRoutes.map((incomingRoute) => incomingRoute.end);
+    // const outcomingLocations =  this.outcomingRoutes.map((outcomingRoutes) => outcomingRoutes.start);
+    // const allLocations = incomingLocations.concat(outcomingLocations);
+    // let length = allLocations.length !== 0 ? allLocations.length : 1;
+    // const latitudeAverage = allLocations.reduce(((accumulator, current) => accumulator + current.latitude), 0) / length;
+    // const longitudeAverage = allLocations.reduce(((accumulator, current) => accumulator + current.longitude), 0) / length;
+    // this.centerLocation = new LocationCoordinate(latitudeAverage, longitudeAverage);
   }
 
   generateOutcomingRoutes() {

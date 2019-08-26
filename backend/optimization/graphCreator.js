@@ -11,17 +11,18 @@ const SEARCH_AROUND_END = "SEARCH_AROUND_END";
 const SEARCH_INCOMING = "SEARCH_INCOMING";
 const SEARCH_OUTCOMING = "SEARCH_OUTCOMING";
 
-const desiredDistanceThreshold = 50;
+const desiredDistanceThreshold = 40;
 
-const isolatedVerticesLinkingThreshold = 120;
+const isolatedVerticesLinkingThreshold = 150;
 
-const desiredNearbyDistanceThreshold = 40;
+const desiredNearbyDistanceThreshold = 20;
 
 const desiredVertexMergeDistanceThreshold = 1;
 
 const routeNearVertexIgnoreDistance = 3300;
 
 // const nearbySegmentExceptionRoutes = ['Josepha Conrada', 'mogilska', '29 listopada', 'Armii Krajowej', 'Jasnogorska', 'Reymonta', 'Saska', 'most kotlarski', 'Zielinskiego', 'przejazd rowerowy przez Zielinskiego', 'ul. Zielinskiego i Most Zwierzyniecki', 'Most Zwierzyniecki', 'Konopnickiej', 'Bulwary pod Wawelem', 'Most Grunwaldzki', 'most grunwaldzki'];
+const nearbySegmentExceptionRoutes = ['Reymonta'];
 
 class GraphCreator {
 
@@ -43,8 +44,8 @@ class GraphCreator {
     });
     // this.extractIntersections();
     this.extractNearbySegments();
-    this.linkIsolatedVertices();
     this.assignBidirectional();
+    this.linkIsolatedVertices();
     this.reassignVertexIds();
     return this.vertices;
   };
@@ -150,7 +151,7 @@ class GraphCreator {
         // We ignore all the routes that starts or ends in currently iterated vertex.
         if (route.startPointVertexId === vertex.id | route.endPointVertexId === vertex.id) { return; }
         // // We ignore all routes that are listed in exceptions.
-        // if (nearbySegmentExceptionRoutes.includes(route.name)) { return; }
+        if (nearbySegmentExceptionRoutes.includes(route.name)) { return; }
         // We eliminate all routes that are incoming or outcoming from a currently iterated vertex.
         // They can have very short first segments and create false data.
         const outcomingRouteIds = vertex.outcomingRoutes.map((route) => route.id );
@@ -161,12 +162,13 @@ class GraphCreator {
         const distanceToRouteEnd = distanceCalculation.distanceBetweenLocations(vertex.centerLocation, route.end);
         if (distanceToRouteStart > routeNearVertexIgnoreDistance & distanceToRouteEnd > routeNearVertexIgnoreDistance) { return; }
         // We find the first segment that is near enough to the specified vertex. Works much faster than sorting and extracting first.
-        const eligibleSegment = route.segments.find((segment) => {
-          const distance = distanceCalculation.distanceBetweenLocations(vertex.centerLocation, segment.start);
-          return distance <= desiredNearbyDistanceThreshold;
+        let sorted = route.segments.concat().sort((segment1, segment2) => {
+          return distanceCalculation.distanceBetweenLocations(vertex.centerLocation, segment1.start) - distanceCalculation.distanceBetweenLocations(vertex.centerLocation, segment2.start);
         });
+        const eligibleSegment = sorted[0];
         // If none found, just return from the method.
         if (eligibleSegment === undefined) { return; }
+        if (distanceCalculation.distanceBetweenLocations(vertex.centerLocation, eligibleSegment.start) > desiredNearbyDistanceThreshold) { return; }
         // We split the currently iterated route via given segment.
         this.splitRouteBySegmentNearVertex(route, eligibleSegment, vertex);
       });
@@ -204,11 +206,12 @@ class GraphCreator {
       this.vertices.forEach(vertex => {
         if (vertex.incomingRoutes.length > 1 | vertex.outcomingRoutes.length > 1) { return; }
         let nearbyVertices = this.vertices.filter(iteratedVertex => {
+          if (iteratedVertex === vertex) { return false; }
           const distance = distanceCalculation.distanceBetweenLocations(iteratedVertex.centerLocation, vertex.centerLocation);
           return distance < isolatedVerticesLinkingThreshold
         });
         // Ignoring isoalted vertices in highly vertex populated areas.
-        if (nearbyVertices.length > 5) { return; }
+        if (nearbyVertices.length > 3) { return; }
         console.log(`Found isolated vertex: ${JSON.stringify(vertex.centerLocation)}`);
         nearbyVertices.forEach(iteratedVertex => {
           let linkSegment = new Segment([iteratedVertex.centerLocation.longitude, iteratedVertex.centerLocation.latitude, vertex.centerLocation.longitude, vertex.centerLocation.latitude], 'isolation_link');
