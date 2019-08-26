@@ -10,15 +10,17 @@ const SEARCH_AROUND_END = "SEARCH_AROUND_END";
 const SEARCH_INCOMING = "SEARCH_INCOMING";
 const SEARCH_OUTCOMING = "SEARCH_OUTCOMING";
 
-const desiredDistanceThreshold = 30;
+const desiredDistanceThreshold = 50;
+
+const desiredDistanceThresholdExtended = 100;
 
 const desiredNearbyDistanceThreshold = 40;
 
-const desiredVertexMergeDistanceThreshold = 15;
+const desiredVertexMergeDistanceThreshold = 1;
 
 const routeNearVertexIgnoreDistance = 3300;
 
-const nearbySegmentExceptionRoutes = ['Josepha Conrada', 'mogilska', '29 listopada', 'Armii Krajowej', 'Jasnogorska', 'Reymonta', 'Saska', 'most kotlarski', 'Zielinskiego', 'przejazd rowerowy przez Zielinskiego', 'ul. Zielinskiego i Most Zwierzyniecki', 'Most Zwierzyniecki', 'Konopnickiej', 'Bulwary pod Wawelem', 'Most Grunwaldzki', 'most grunwaldzki'];
+// const nearbySegmentExceptionRoutes = ['Josepha Conrada', 'mogilska', '29 listopada', 'Armii Krajowej', 'Jasnogorska', 'Reymonta', 'Saska', 'most kotlarski', 'Zielinskiego', 'przejazd rowerowy przez Zielinskiego', 'ul. Zielinskiego i Most Zwierzyniecki', 'Most Zwierzyniecki', 'Konopnickiej', 'Bulwary pod Wawelem', 'Most Grunwaldzki', 'most grunwaldzki'];
 
 class GraphCreator {
 
@@ -80,7 +82,7 @@ class GraphCreator {
     const vertexId = this.autoincrementedId();
     const vertex = new Vertex(vertexId, incomingRoutes, outcomingRoutes);
 
-    // We fin a vertex that is already nerby a vertex that we are about to add.
+    // // We fin a vertex that is already nerby a vertex that we are about to add.
     const alreadyExistingVertex = this.vertices.find((iteratedVertex) => {
       const distance = distanceCalculation.distanceBetweenLocations(vertex.centerLocation, iteratedVertex.centerLocation);
       return distance < desiredVertexMergeDistanceThreshold;
@@ -145,8 +147,8 @@ class GraphCreator {
       this.routes.forEach((route) => {
         // We ignore all the routes that starts or ends in currently iterated vertex.
         if (route.startPointVertexId === vertex.id | route.endPointVertexId === vertex.id) { return; }
-        // We ignore all routes that are listed in exceptions.
-        if (nearbySegmentExceptionRoutes.includes(route.name)) { return; }
+        // // We ignore all routes that are listed in exceptions.
+        // if (nearbySegmentExceptionRoutes.includes(route.name)) { return; }
         // We eliminate all routes that are incoming or outcoming from a currently iterated vertex.
         // They can have very short first segments and create false data.
         const outcomingRouteIds = vertex.outcomingRoutes.map((route) => route.id );
@@ -201,7 +203,6 @@ class GraphCreator {
       // Performs search for all other routes that start nearby the given route.
       let incomingCloseToStart = this.findClosest(route, this.routes, desiredDistanceThreshold, SEARCH_INCOMING, searchType);
       let outcomingCloseToStart = this.findClosest(route, this.routes, desiredDistanceThreshold, SEARCH_OUTCOMING, searchType);
-
       this.addSingleVertex(incomingCloseToStart, outcomingCloseToStart);
   }
 

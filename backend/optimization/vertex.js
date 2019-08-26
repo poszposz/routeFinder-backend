@@ -29,7 +29,7 @@ class Vertex {
     routes.forEach((route) => {
       if (route.hasAssignedEndingWeight) { return; }
       let distanceToEnd = distanceCalculation.distanceBetweenLocations(route.end, this.centerLocation);
-      distanceToEnd = distanceToEnd <= 5 ? 0 : distanceToEnd;
+      distanceToEnd = distanceToEnd <= 10 ? 0 : distanceToEnd;
       const weight = (route.totalLength * route.weightMultiplier) + (distanceToEnd * 5);
       route.totalWeight = weight;
       route.hasAssignedEndingWeight = true;
@@ -40,7 +40,7 @@ class Vertex {
     routes.forEach((route) => {
       if (route.hasAssignedStartingWeight) { return; }
       let distanceToStart = distanceCalculation.distanceBetweenLocations(route.start, this.centerLocation);
-      distanceToStart = distanceToStart <= 5 ? 0 : distanceToStart;
+      distanceToStart = distanceToStart <= 10 ? 0 : distanceToStart;
       const weight = (route.totalLength * route.weightMultiplier) + (distanceToStart * 5);
       route.totalWeight = weight;
       route.hasAssignedStartingWeight = true;
