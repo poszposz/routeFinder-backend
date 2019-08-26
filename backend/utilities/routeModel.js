@@ -1,7 +1,7 @@
 require('../extensions/array');
 const uuidv4 = require('./UUIDGenerator');
 
-const longestRouteAllowed = 200;
+const longestRouteAllowed = 150;
 
 const maximumSegmentLength = 10;
 
@@ -43,6 +43,9 @@ class Route {
       this.weightMultiplier = 1;
     }
     this.totalWeight = this.totalLength * this.weightMultiplier;
+    if (this.weightMultiplier === 10) {
+      console.log(`Assigning 10 weight multiplier, reuslting ${this.totalWeight}`);
+    }
   }
 
   normalizeSegments(segments) {
