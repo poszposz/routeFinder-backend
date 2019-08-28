@@ -1,13 +1,13 @@
 require('../extensions/array');
 const uuidv4 = require('./UUIDGenerator');
 
-const longestRouteAllowed = 150;
+const longestRouteAllowed = 100;
 
 const maximumSegmentLength = 10;
 
 class Route {
 
-  constructor(id, name, category, segments, isBikeRoute, parentRouteId = null) {
+  constructor(id, name, category, segments, isBikeRoute, parent) {
     this.id = id;
 
     this.startPointVertexId = 0;
@@ -23,12 +23,12 @@ class Route {
     // }
     let originalSegments = segments;
     this.totalLength = segments.reduce(((previous, next) => previous + next.length ), 0);
-    this.totalWeight = this.totalLength;
+    this.weight = this.totalLength;
     this.segments = this.normalizeSegments(originalSegments);
     this.start = this.segments[0].start;
     this.end = this.segments[this.segments.length - 1].end;
     this.isBikeRoute = isBikeRoute;
-    this.parentRouteId = parentRouteId;
+    this.parent = parent;
     if (this.category.includes('ddr')) {
       this.weightMultiplier = 0.7;
     } else if (this.category.includes('kontrapas') | this.category.includes('cpr') | this.category.includes('kontraruch')) {
@@ -42,10 +42,7 @@ class Route {
     } else {
       this.weightMultiplier = 1;
     }
-    this.totalWeight = this.totalLength * this.weightMultiplier;
-    if (this.weightMultiplier === 10) {
-      console.log(`Assigning 10 weight multiplier, reuslting ${this.totalWeight}`);
-    }
+    this.weight = this.totalLength * this.weightMultiplier;
   }
 
   normalizeSegments(segments) {
@@ -102,6 +99,7 @@ class Route {
     let route = new Route(this.id, this.name, this.category, newSegments, this.isBikeRoute);
     route.startPointVertexId = this.endPointVertexId;
     route.endPointVertexId = this.startPointVertexId;
+    route.weight = this.weight;
     return route;
   }
 
@@ -109,7 +107,7 @@ class Route {
     let route = new Route(this.id, this.name, this.category, this.segments, this.isBikeRoute);
     route.startPointVertexId = this.startPointVertexId;
     route.endPointVertexId = this.endPointVertexId;
-    route.totalWeight = this.totalWeight;
+    route.weight = this.weight;
     return route;
   }
 

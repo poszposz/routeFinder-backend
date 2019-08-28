@@ -15,14 +15,6 @@ class Graph {
     };
   }
 
-  generateDijkstraQuery() {
-    let transformedGraph = {};
-    this.vertices.forEach((vertex) => {
-      transformedGraph[vertex.id] = vertex.generateOutcomingRoutes();
-    });
-    return transformedGraph;
-  }
-
   nearestStartVertices(location) {
     const possibleStartVertices = this.vertices.filter((vertex) => {
       return vertex.outcomingRoutes.length > 0
@@ -45,7 +37,7 @@ class Graph {
     });
     if (sorted.length > 0) {
       let best = sorted[0];
-      let slice = sorted.slice(0, 6);
+      let slice = sorted.slice(0, 1);
       return slice.map((vertex) => {
         return {
           'isBest': (vertex === best),
@@ -74,10 +66,18 @@ class Graph {
     this.vertices.forEach(vertex => {
       graph.addNode(vertex.id, {vertex: vertex});
       [vertex.incomingRoutes, vertex.outcomingRoutes].flatten().forEach((route) => {
-        graph.addLink(route.startPointVertexId, route.endPointVertexId, {weight: route.totalWeight});
+        graph.addLink(route.startPointVertexId, route.endPointVertexId, {weight: route.weight});
       });
     })
     return graph;
+  }
+
+  generateDijkstraQuery() {
+    let transformedGraph = {};
+    this.vertices.forEach((vertex) => {
+      transformedGraph[vertex.id] = vertex.generateOutcomingRoutes();
+    });
+    return transformedGraph;
   }
 
   debugDescription() {

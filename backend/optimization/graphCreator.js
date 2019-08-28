@@ -2,7 +2,6 @@ const distanceCalculation = require('./../utilities/distanceCalculation');
 const Vertex = require('./vertex');
 const Route = require('../utilities/routeModel');
 const Segment = require('../utilities/segment');
-const Polygon = require('../utilities/polygon');
 var uuidv4 = require('../utilities/UUIDGenerator');
 
 const SEARCH_AROUND_START = "SEARCH_AROUND_START";
@@ -11,7 +10,11 @@ const SEARCH_AROUND_END = "SEARCH_AROUND_END";
 const SEARCH_INCOMING = "SEARCH_INCOMING";
 const SEARCH_OUTCOMING = "SEARCH_OUTCOMING";
 
-const desiredDistanceThreshold = 40;
+const desiredDistanceThreshold = 10;
+
+const desiredDistanceThresholdExtended = 40;
+
+const desiredDistanceThresholdMaximum = 60;
 
 const isolatedVerticesLinkingThreshold = 150;
 
@@ -22,7 +25,7 @@ const desiredVertexMergeDistanceThreshold = 1;
 const routeNearVertexIgnoreDistance = 3300;
 
 // const nearbySegmentExceptionRoutes = ['Josepha Conrada', 'mogilska', '29 listopada', 'Armii Krajowej', 'Jasnogorska', 'Reymonta', 'Saska', 'most kotlarski', 'Zielinskiego', 'przejazd rowerowy przez Zielinskiego', 'ul. Zielinskiego i Most Zwierzyniecki', 'Most Zwierzyniecki', 'Konopnickiej', 'Bulwary pod Wawelem', 'Most Grunwaldzki', 'most grunwaldzki'];
-const nearbySegmentExceptionRoutes = ['Reymonta'];
+const nearbySegmentExceptionRoutes = ['Reymonta', 'Wielicka', 'wielicka'];
 
 class GraphCreator {
 
@@ -38,15 +41,23 @@ class GraphCreator {
   }
 
   createGraph() {
+    var start = new Date();
     this.routes.forEach((route) => {
       this.pushVertex(route, SEARCH_AROUND_START);
       this.pushVertex(route, SEARCH_AROUND_END);
     });
-    // this.extractIntersections();
-    this.extractNearbySegments();
+    var end = new Date() - start;
+    console.info('Route ending association time: %dms', end);
+    // this.extractNearbySegments();
+    // end = new Date() - start;
+    // console.info('Nearby segments extraction time: %dms', end);
     this.assignBidirectional();
+    end = new Date() - start;
+    console.info('Bidirectional routes assignment time: %dms', end);
     this.linkIsolatedVertices();
     this.reassignVertexIds();
+    end = new Date() - start;
+    console.info('Graph total creation time: %dms', end);
     return this.vertices;
   };
 
@@ -110,37 +121,6 @@ class GraphCreator {
       });
       alreadyExistingVertex.reloadCenterLocation();
     }
-  }
-
-  extractIntersections() {
-    this.routes.forEach((outerRoute) => {
-      this.routes.forEach((innerRoute) => {
-        if (innerRoute.parentRouteId === outerRoute.parentRouteId | innerRoute.id === outerRoute.id) { return; }
-        let outerRoutePolygon = new Polygon(outerRoute.start, outerRoute.end);
-        let innerRoutePolygon = new Polygon(innerRoute.start, innerRoute.end);
-        if (!innerRoutePolygon.intersects(outerRoutePolygon)) { 
-          return; 
-        }
-        let outerRouteSegments = outerRoute.segments;
-        let innerRouteSegments = innerRoute.segments;
-        let matchingOuterSegmentIntersection = undefined;
-        let matchingInnerSegmentIntersection = undefined;
-        let bestDistance = Infinity;
-        outerRouteSegments.forEach(outerRouteSegment => {
-          innerRouteSegments.forEach(innerRouteSegment => {
-            const distance = distanceCalculation.distanceBetweenLocations(outerRouteSegment.start, innerRouteSegment.start);
-            if (distance < bestDistance) {
-              bestDistance = distance;
-              matchingInnerSegmentIntersection = innerRouteSegment;
-              matchingOuterSegmentIntersection = outerRouteSegment;
-            }
-          });
-        });
-        if (bestDistance > 15) { return; }
-        console.log(`Distance: ${bestDistance}`);
-        console.log(`Found intersection between ${outerRoute.name} and ${innerRoute.name}`);
-      });
-    });
   }
 
   extractNearbySegments() {    
@@ -212,7 +192,6 @@ class GraphCreator {
         });
         // Ignoring isoalted vertices in highly vertex populated areas.
         if (nearbyVertices.length > 3) { return; }
-        console.log(`Found isolated vertex: ${JSON.stringify(vertex.centerLocation)}`);
         nearbyVertices.forEach(iteratedVertex => {
           let linkSegment = new Segment([iteratedVertex.centerLocation.longitude, iteratedVertex.centerLocation.latitude, vertex.centerLocation.longitude, vertex.centerLocation.latitude], 'isolation_link');
           let route = new Route(uuidv4(), "isolation_link", "isolation_link", [linkSegment], false);
@@ -228,7 +207,29 @@ class GraphCreator {
       // Procedure for route starting vertex.
       // Performs search for all other routes that start nearby the given route.
       let incomingCloseToStart = this.findClosest(route, this.routes, desiredDistanceThreshold, SEARCH_INCOMING, searchType);
+      // if (incomingCloseToStart.length > 1) {
+      //   console.log('Found very nearby incoming');
+      // }
+      if (incomingCloseToStart.length === 1) {
+        // console.log('Falling to extended search for incoming');
+        incomingCloseToStart = this.findClosest(route, this.routes, desiredDistanceThresholdExtended, SEARCH_INCOMING, searchType);
+      }
+      if (incomingCloseToStart.length === 1) {
+        // console.log('Falling to maximum search for incoming');
+        incomingCloseToStart = this.findClosest(route, this.routes, desiredDistanceThresholdMaximum, SEARCH_INCOMING, searchType);
+      }
       let outcomingCloseToStart = this.findClosest(route, this.routes, desiredDistanceThreshold, SEARCH_OUTCOMING, searchType);
+      // if (outcomingCloseToStart.length > 1) {
+      //   console.log('Found very nearby outcoming');
+      // }
+      if (outcomingCloseToStart.length === 1) {
+        // console.log('Falling to extended search for outcoming');
+        outcomingCloseToStart = this.findClosest(route, this.routes, desiredDistanceThresholdExtended, SEARCH_INCOMING, searchType);
+      }
+      if (outcomingCloseToStart.length === 1) {
+        // console.log('Falling to maximum search for outcoming');
+        outcomingCloseToStart = this.findClosest(route, this.routes, desiredDistanceThresholdMaximum, SEARCH_INCOMING, searchType);
+      }
       this.addSingleVertex(incomingCloseToStart, outcomingCloseToStart);
   }
 
@@ -238,7 +239,7 @@ class GraphCreator {
    * Additionally searches for for incoming or outcoming routes, based on directionType passed. Can be SEARCH_INCOMING or SEARCH_OUTCOMING.
    */
   findClosest(route, routes, distanceThreshold, directionType, searchType) {
-    let baseLocation = searchType === SEARCH_AROUND_START ? route.start : route.end;
+    let baseLocation = searchType === SEARCH_AROUND_START ? route.end : route.start;
     return routes.filter((filteredRoute) => {
       let searchedLocation = directionType === SEARCH_INCOMING ? filteredRoute.end : filteredRoute.start;
       const distance = distanceCalculation.distanceBetweenLocations(baseLocation, searchedLocation);
