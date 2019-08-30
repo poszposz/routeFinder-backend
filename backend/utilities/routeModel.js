@@ -1,13 +1,13 @@
 require('../extensions/array');
 const uuidv4 = require('./UUIDGenerator');
 
-const longestRouteAllowed = 100;
+const longestRouteAllowed = 30;
 
-const maximumSegmentLength = 10;
+const maximumSegmentLength = 3;
 
 class Route {
 
-  constructor(id, name, category, segments, isBikeRoute, parent) {
+  constructor(id, name, category, segments, isBikeRoute, parent = null, children = null) {
     this.id = id;
 
     this.startPointVertexId = 0;
@@ -16,11 +16,6 @@ class Route {
     this.name = name;
     this.category = category === undefined ? "" : category;
     this.bidirectional = 1; 
-    // if (this.category.includes('dwr') | this.category.includes('c16t22') | this.category.includes('cpr') | !isBikeRoute) {
-    //   this.bidirectional = 1;      
-    // } else { 
-    //   this.bidirectional = 0;
-    // }
     let originalSegments = segments;
     this.totalLength = segments.reduce(((previous, next) => previous + next.length ), 0);
     this.weight = this.totalLength;
@@ -29,20 +24,29 @@ class Route {
     this.end = this.segments[this.segments.length - 1].end;
     this.isBikeRoute = isBikeRoute;
     this.parent = parent;
+    this.isLink = false;
+    this.children = children;
     if (this.category.includes('ddr')) {
       this.weightMultiplier = 0.7;
     } else if (this.category.includes('kontrapas') | this.category.includes('cpr') | this.category.includes('kontraruch')) {
       this.weightMultiplier = 0.8;
     } else if (this.category.includes('c16t22')) {
       this.weightMultiplier = 0.9;
+    } else if (this.category.includes('standard_link')) {
+      this.weightMultiplier = this.totalLength >= 15 ? 2 : 1;
+      this.isLink = true;
     } else if (this.category.includes('isolation_link')) {
       this.weightMultiplier = 10;
+      this.isLink = true;
     } else if (!isBikeRoute) {
       this.weightMultiplier = 1.1;
     } else {
       this.weightMultiplier = 1;
     }
-    this.weight = this.totalLength * this.weightMultiplier;
+    // A slight parameter substracted from route if it's a main one. To avoid routing via it's children separately.
+    let mainRouteWeightReduceConstant = (children == null & !this.isLink) ? 5 : 0;
+    let weight = (this.totalLength * this.weightMultiplier)
+    this.weight = weight >= 5 ? weight - mainRouteWeightReduceConstant : weight;
   }
 
   normalizeSegments(segments) {
@@ -68,13 +72,18 @@ class Route {
   }
 
   split() {
-    if (this.totalLength < longestRouteAllowed) { return this; }
+    if (this.totalLength < longestRouteAllowed) {
+      return new Route(uuidv4(), this.name, this.category, this.segments, this.isBikeRoute, null, [this.copy()]);
+    }
     const maximumSegmentsPerRoute = longestRouteAllowed / maximumSegmentLength;
+    let mainRoute = new Route(uuidv4(), this.name, this.category, this.segments, this.isBikeRoute, null, null);
     let segments = this.segments.chunk(maximumSegmentsPerRoute);
-    return segments.map((segmentChunk) => {
-      let route = new Route(uuidv4(), this.name, this.category, segmentChunk, this.isBikeRoute, this.id);
+    let childRoutes = segments.map((segmentChunk) => {
+      let route = new Route(uuidv4(), this.name, this.category, segmentChunk, this.isBikeRoute, mainRoute, null);
       return route;
     });
+    mainRoute.children = childRoutes;
+    return mainRoute;
   }
 
   splitBy(segment) {
@@ -95,8 +104,14 @@ class Route {
   }
 
   reversed() {
-    let newSegments = this.segments.map((segment) => segment.reversed()).concat().reverse();
-    let route = new Route(this.id, this.name, this.category, newSegments, this.isBikeRoute);
+    let reversedSegments = this.segments.concat().map((segment) => segment.reversed()).reverse();
+    let route;
+    if (this.children === null) {
+      route = new Route(this.id, this.name, this.category, reversedSegments, this.isBikeRoute, this.parent, null);
+    } else {
+      let reversedChildren = this.children.map(route => route.reversed());
+      route = new Route(this.id, this.name, this.category, reversedSegments, this.isBikeRoute, this.parent, reversedChildren);
+    }
     route.startPointVertexId = this.endPointVertexId;
     route.endPointVertexId = this.startPointVertexId;
     route.weight = this.weight;
@@ -104,11 +119,26 @@ class Route {
   }
 
   copy() {
-    let route = new Route(this.id, this.name, this.category, this.segments, this.isBikeRoute);
+    let route = new Route(this.id, this.name, this.category, this.segments, this.isBikeRoute, this.parent, this.children);
     route.startPointVertexId = this.startPointVertexId;
     route.endPointVertexId = this.endPointVertexId;
     route.weight = this.weight;
     return route;
+  }
+
+  toJSON() {
+    return {
+      'id': this.id,
+      'name': this.name,
+      'category': this.category,
+      'start': this.start,
+      'end': this.end,
+      'startPointVertexId': this.startPointVertexId,
+      'endPointVertexId': this.endPointVertexId,
+      'segments': this.segments,
+      'totalLength': this.totalLength,
+      'bidirectional': this.bidirectional,
+    }
   }
 
   debugDescription() {
@@ -118,6 +148,9 @@ class Route {
       'start': this.startPointVertexId,
       'end': this.endPointVertexId,
       'length': this.totalLength,
+      'children': this.children,
+      'parent': this.parent ? this.parent.id : null,
+      'parentChildrenLength': this.parent.children ? this.parent.children.length : null
     }
   }
 }

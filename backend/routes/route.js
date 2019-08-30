@@ -54,7 +54,7 @@ router.get('/findOptimized', async function(req, res, next) {
       'totalWeight': result.totalWeight,
       'totalLengthCombined': result.totalLength,
       'totalWeightCombined': result.totalWeight,
-      'routes':  result.routes,
+      'routes':  result.routes.map(route => route.toJSON()),
     };
     res.json(response);
   } catch (error) {
@@ -87,7 +87,7 @@ router.get('/findOptimizedAStar', async function(req, res, next) {
       'totalWeight': result.totalWeight,
       'totalLengthCombined': result.totalLength,
       'totalWeightCombined': result.totalWeight,
-      'routes':  result.routes,
+      'routes':  result.routes.map(route => route.toJSON()),
     };
     res.json(response);
   } catch (error) {

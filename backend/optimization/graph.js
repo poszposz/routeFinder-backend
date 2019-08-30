@@ -35,9 +35,15 @@ class Graph {
       const secondDistance = distanceCalculation.distanceBetweenLocations(location, second.centerLocation);
       return firstDistance - secondDistance;
     });
-    if (sorted.length > 0) {
-      let best = sorted[0];
-      let slice = sorted.slice(0, 1);
+    const parentRouteIds = [];
+    const sortedUniqueParentRouteIds = sorted.filter(vertex => {
+      if (parentRouteIds.includes(vertex.id)) { return false; }
+      parentRouteIds.push(vertex.id);
+      return true;
+    });
+    if (sortedUniqueParentRouteIds.length > 0) {
+      let best = sortedUniqueParentRouteIds[0];
+      let slice = sortedUniqueParentRouteIds.slice(0, 3);
       return slice.map((vertex) => {
         return {
           'isBest': (vertex === best),

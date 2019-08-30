@@ -4,33 +4,16 @@ const Route = require('../utilities/routeModel');
 const Segment = require('../utilities/segment');
 var uuidv4 = require('../utilities/UUIDGenerator');
 
-const SEARCH_AROUND_START = "SEARCH_AROUND_START";
-const SEARCH_AROUND_END = "SEARCH_AROUND_END";
-
-const SEARCH_INCOMING = "SEARCH_INCOMING";
-const SEARCH_OUTCOMING = "SEARCH_OUTCOMING";
-
-const desiredDistanceThreshold = 10;
-
-const desiredDistanceThresholdExtended = 40;
-
-const desiredDistanceThresholdMaximum = 60;
-
 const isolatedVerticesLinkingThreshold = 150;
 
-const desiredNearbyDistanceThreshold = 20;
-
-const desiredVertexMergeDistanceThreshold = 1;
-
-const routeNearVertexIgnoreDistance = 3300;
-
-// const nearbySegmentExceptionRoutes = ['Josepha Conrada', 'mogilska', '29 listopada', 'Armii Krajowej', 'Jasnogorska', 'Reymonta', 'Saska', 'most kotlarski', 'Zielinskiego', 'przejazd rowerowy przez Zielinskiego', 'ul. Zielinskiego i Most Zwierzyniecki', 'Most Zwierzyniecki', 'Konopnickiej', 'Bulwary pod Wawelem', 'Most Grunwaldzki', 'most grunwaldzki'];
-const nearbySegmentExceptionRoutes = ['Reymonta', 'Wielicka', 'wielicka'];
+const desiredNearbyDistanceThreshold = 30;
 
 class GraphCreator {
 
   constructor(routes) {
+    console.log(`All routes: ${routes.length}`);
     this.routes = routes;
+    this.childRoutes = routes.map(route => route.children).flatten();
     this.vertices = [];
     this.currentId = 1;
   }
@@ -43,22 +26,54 @@ class GraphCreator {
   createGraph() {
     var start = new Date();
     this.routes.forEach((route) => {
-      this.pushVertex(route, SEARCH_AROUND_START);
-      this.pushVertex(route, SEARCH_AROUND_END);
+      this.createInRouteVertices(route);
     });
     var end = new Date() - start;
     console.info('Route ending association time: %dms', end);
-    // this.extractNearbySegments();
-    // end = new Date() - start;
-    // console.info('Nearby segments extraction time: %dms', end);
+    this.extractNearbyVertices();
+    console.log(`Vertices count after extraction: ${this.vertices.length}`);
+    end = new Date() - start;
+    console.info('Nearby vertices extraction time: %dms', end);
     this.assignBidirectional();
     end = new Date() - start;
     console.info('Bidirectional routes assignment time: %dms', end);
     this.linkIsolatedVertices();
-    this.reassignVertexIds();
     end = new Date() - start;
     console.info('Graph total creation time: %dms', end);
     return this.vertices;
+  };
+
+  createInRouteVertices(parentRoute) {
+    let index = 0;
+    let previousVertex;
+    parentRoute.children.forEach((route) => {
+      if (index === 0) {
+        let startingVertex = this.addSingleVertex([], [route], parentRoute.id);
+        let endingVertex = this.addSingleVertex([route], [], parentRoute.id);
+        parentRoute.startPointVertexId = startingVertex.id;
+        if (parentRoute.children.length === 1) {
+          parentRoute.endPointVertexId = endingVertex.id;
+          // endingVertex.addIncomingRoutes([parentRoute]);
+        }
+        // startingVertex.addOutcomingRoutes([parentRoute]);
+        previousVertex = endingVertex;
+        index = 1;
+        return
+      }
+      if (index === parentRoute.children.length - 1) {
+        let vertex = this.addSingleVertex([route], [], parentRoute.id);
+        route.startPointVertexId = previousVertex.id;
+        parentRoute.endPointVertexId = vertex.id;
+        // vertex.addIncomingRoutes([parentRoute]);
+        return;
+      }
+      let nextRoute = parentRoute.children[index + 1];
+      previousVertex = this.addSingleVertex([route], [nextRoute], parentRoute.id);
+      if (index === 1) {
+        route.startPointVertexId = previousVertex.id;
+      }
+      index += 1;
+    }); 
   };
 
   assignBidirectional() {
@@ -73,126 +88,65 @@ class GraphCreator {
     });
   }
 
-  reassignVertexIds() {
-    this.vertices = this.vertices.map((vertex) => {
-      vertex.outcomingRoutes = vertex.outcomingRoutes.map((route) => {
-        route.startPointVertexId = vertex.id;
-        return route;
-      });
-      vertex.incomingRoutes = vertex.incomingRoutes.map((route) => {
-        route.endPointVertexId = vertex.id;
-        return route;
-      });
-      return vertex;
-    });
-  }
-
   /**
    * Adds a single vertex with given incoming and outcoming routes. 
    * Additionally checks if there is a vertex within desiredDistanceThreshold, if so, appends it with given routes.
    */
-  addSingleVertex(incomingRoutes, outcomingRoutes) {
+  addSingleVertex(incomingRoutes, outcomingRoutes, parentRouteId) {
     // Create new vertex with all gathered data and append it to vertices prop.
     const vertexId = this.autoincrementedId();
-    const vertex = new Vertex(vertexId, incomingRoutes, outcomingRoutes);
-
-    // // We fin a vertex that is already nerby a vertex that we are about to add.
-    const alreadyExistingVertex = this.vertices.find((iteratedVertex) => {
-      const distance = distanceCalculation.distanceBetweenLocations(vertex.centerLocation, iteratedVertex.centerLocation);
-      return distance < desiredVertexMergeDistanceThreshold;
+    const vertex = new Vertex(vertexId, incomingRoutes, outcomingRoutes, parentRouteId);
+    this.vertices.push(vertex);
+    incomingRoutes.forEach((incomingRoute) => {
+      incomingRoute.endPointVertexId = vertexId;
     });
-    if (alreadyExistingVertex === undefined) {
-      this.vertices.push(vertex);
-      incomingRoutes.forEach((incomingRoute) => {
-        incomingRoute.endPointVertexId = vertexId;
-      });
-      outcomingRoutes.forEach((outcomingRoute) => {
-        outcomingRoute.startPointVertexId = vertexId;
-      });
-    } else {
-      incomingRoutes.forEach((incomingRoute) => {
-        incomingRoute.endPointVertexId = alreadyExistingVertex.id;
-        alreadyExistingVertex.addIncomingRoutes([incomingRoute]);
-      });
-
-      outcomingRoutes.forEach((outcomingRoute) => {
-        outcomingRoute.startPointVertexId = alreadyExistingVertex.id;
-        alreadyExistingVertex.addOutcomingRoutes([outcomingRoute]);
-      });
-      alreadyExistingVertex.reloadCenterLocation();
-    }
+    outcomingRoutes.forEach((outcomingRoute) => {
+      outcomingRoute.startPointVertexId = vertexId;
+    });
+    return vertex;
   }
 
-  extractNearbySegments() {    
-    // We have all segments from routes. Now we have to iterate via all vertices.
-    // We have to iterate through all routes and for each of them find a segment that is closest to the vertex.
-    this.vertices.forEach((vertex) => {
-      this.routes.forEach((route) => {
-        // We ignore all the routes that starts or ends in currently iterated vertex.
-        if (route.startPointVertexId === vertex.id | route.endPointVertexId === vertex.id) { return; }
-        // // We ignore all routes that are listed in exceptions.
-        if (nearbySegmentExceptionRoutes.includes(route.name)) { return; }
-        // We eliminate all routes that are incoming or outcoming from a currently iterated vertex.
-        // They can have very short first segments and create false data.
-        const outcomingRouteIds = vertex.outcomingRoutes.map((route) => route.id );
-        const incomingRouteIds = vertex.incomingRoutes.map((route) => route.id );
-        if (outcomingRouteIds.includes(route.id) | incomingRouteIds.includes(route.id)) { return; }
-        // We eliminate routes that are to far away to be possibly near a given vertex.
-        const distanceToRouteStart = distanceCalculation.distanceBetweenLocations(vertex.centerLocation, route.start);
-        const distanceToRouteEnd = distanceCalculation.distanceBetweenLocations(vertex.centerLocation, route.end);
-        if (distanceToRouteStart > routeNearVertexIgnoreDistance & distanceToRouteEnd > routeNearVertexIgnoreDistance) { return; }
-        // We find the first segment that is near enough to the specified vertex. Works much faster than sorting and extracting first.
-        let sorted = route.segments.concat().sort((segment1, segment2) => {
-          return distanceCalculation.distanceBetweenLocations(vertex.centerLocation, segment1.start) - distanceCalculation.distanceBetweenLocations(vertex.centerLocation, segment2.start);
-        });
-        const eligibleSegment = sorted[0];
-        // If none found, just return from the method.
-        if (eligibleSegment === undefined) { return; }
-        if (distanceCalculation.distanceBetweenLocations(vertex.centerLocation, eligibleSegment.start) > desiredNearbyDistanceThreshold) { return; }
-        // We split the currently iterated route via given segment.
-        this.splitRouteBySegmentNearVertex(route, eligibleSegment, vertex);
+  extractNearbyVertices() {
+    let count = 0;
+    this.vertices.forEach(vertex => {
+      let nearbyVertices = this.vertices.filter(iteratedVertex => {
+        if (iteratedVertex.parentRouteId === vertex.parentRouteId | vertex === iteratedVertex) { return false; }
+        if (Math.abs(iteratedVertex.centerLocation.latitude - vertex.centerLocation.latitude) > 0.001 | Math.abs(iteratedVertex.centerLocation.longitude - vertex.centerLocation.longitude) > 0.001) { 
+          return false; 
+        }
+        const distance = distanceCalculation.distanceBetweenLocations(iteratedVertex.centerLocation, vertex.centerLocation);
+        return distance < desiredNearbyDistanceThreshold;
+      });
+      nearbyVertices.forEach(iteratedVertex => {
+        count += 1;
+        console.log(`Created route: ${count}, between: ${vertex.id} and ${iteratedVertex.id}`);
+        // console.log(`Created route: ${count}`);
+        this.linkVertices(vertex, iteratedVertex);
       });
     });
   }
 
-  splitRouteBySegmentNearVertex(route, eligibleSegment, vertex) {
-    let splitted = route.splitBy(eligibleSegment);
-    let prefixedSegments = splitted[1];
-    let suffixedSegments = splitted[0];
-    if (prefixedSegments.length === 0 | suffixedSegments.length === 0) { return; }
-    // We have to create two routes from prefixed and suffixed segments.
-    let prefixedRoute = new Route(uuidv4(), route.name, route.category, prefixedSegments, route.isBikeRoute);
-    let suffixedRoute = new Route(uuidv4(), route.name, route.category, suffixedSegments, route.isBikeRoute);
-    // To that point all should be good.
-    
-    // We have to find a vertices this route is starting and ending with.
-    let startVertex = this.vertices.find((vertex) => vertex.id === route.startPointVertexId);
-    let endVertex = this.vertices.find((vertex) => vertex.id === route.endPointVertexId);
-
-    // We assign properly the starting and endings for prefixed and suffixed routes.
-    prefixedRoute.startPointVertexId = startVertex.id;
-    prefixedRoute.endPointVertexId = vertex.id;
-    suffixedRoute.startPointVertexId = vertex.id;
-    suffixedRoute.endPointVertexId = endVertex.id;
-
-    // We properly add the newly created routes to starting, ending and middle vertices.
-    startVertex.addOutcomingRoutes([prefixedRoute]);
-    endVertex.addIncomingRoutes([suffixedRoute]);
-    vertex.addIncomingRoutes([prefixedRoute]);
-    vertex.addOutcomingRoutes([suffixedRoute]);
+  linkVertices(startVertex, endVertex) {
+    let linkSegment = new Segment([startVertex.centerLocation.longitude, startVertex.centerLocation.latitude, endVertex.centerLocation.longitude, endVertex.centerLocation.latitude], 'standard_link');
+    let route = new Route(uuidv4(), "standard_link", "standard_link", [linkSegment], false);
+    endVertex.addIncomingRoutes([route]);
+    route.startPointVertexId = startVertex.id;
+    route.endPointVertexId = endVertex.id;
+    startVertex.addOutcomingRoutes([route]);
   }
 
   linkIsolatedVertices() {
       this.vertices.forEach(vertex => {
         if (vertex.incomingRoutes.length > 1 | vertex.outcomingRoutes.length > 1) { return; }
         let nearbyVertices = this.vertices.filter(iteratedVertex => {
-          if (iteratedVertex === vertex) { return false; }
+          if (iteratedVertex === vertex | iteratedVertex.parentRouteId === vertex.parentRouteId) { return false; }
           const distance = distanceCalculation.distanceBetweenLocations(iteratedVertex.centerLocation, vertex.centerLocation);
           return distance < isolatedVerticesLinkingThreshold
         });
-        // Ignoring isoalted vertices in highly vertex populated areas.
-        if (nearbyVertices.length > 3) { return; }
+        if (nearbyVertices.length > 6) { return; }
+        console.log('Assigning isolated vertex');
         nearbyVertices.forEach(iteratedVertex => {
+          if (iteratedVertex === vertex | iteratedVertex.parentRouteId === vertex.parentRouteId) { return false; }
           let linkSegment = new Segment([iteratedVertex.centerLocation.longitude, iteratedVertex.centerLocation.latitude, vertex.centerLocation.longitude, vertex.centerLocation.latitude], 'isolation_link');
           let route = new Route(uuidv4(), "isolation_link", "isolation_link", [linkSegment], false);
           iteratedVertex.addIncomingRoutes([route]);
@@ -201,50 +155,6 @@ class GraphCreator {
           vertex.addOutcomingRoutes([route]);
         });
       });
-  }
-
-  pushVertex(route, searchType) {
-      // Procedure for route starting vertex.
-      // Performs search for all other routes that start nearby the given route.
-      let incomingCloseToStart = this.findClosest(route, this.routes, desiredDistanceThreshold, SEARCH_INCOMING, searchType);
-      // if (incomingCloseToStart.length > 1) {
-      //   console.log('Found very nearby incoming');
-      // }
-      if (incomingCloseToStart.length === 1) {
-        // console.log('Falling to extended search for incoming');
-        incomingCloseToStart = this.findClosest(route, this.routes, desiredDistanceThresholdExtended, SEARCH_INCOMING, searchType);
-      }
-      if (incomingCloseToStart.length === 1) {
-        // console.log('Falling to maximum search for incoming');
-        incomingCloseToStart = this.findClosest(route, this.routes, desiredDistanceThresholdMaximum, SEARCH_INCOMING, searchType);
-      }
-      let outcomingCloseToStart = this.findClosest(route, this.routes, desiredDistanceThreshold, SEARCH_OUTCOMING, searchType);
-      // if (outcomingCloseToStart.length > 1) {
-      //   console.log('Found very nearby outcoming');
-      // }
-      if (outcomingCloseToStart.length === 1) {
-        // console.log('Falling to extended search for outcoming');
-        outcomingCloseToStart = this.findClosest(route, this.routes, desiredDistanceThresholdExtended, SEARCH_INCOMING, searchType);
-      }
-      if (outcomingCloseToStart.length === 1) {
-        // console.log('Falling to maximum search for outcoming');
-        outcomingCloseToStart = this.findClosest(route, this.routes, desiredDistanceThresholdMaximum, SEARCH_INCOMING, searchType);
-      }
-      this.addSingleVertex(incomingCloseToStart, outcomingCloseToStart);
-  }
-
-  /**
-   * Finds all the routes that are in the given distance of the end or start of the given route.
-   * Query depends on the type passed, can be SEARCH_AROUND_START or SEARCH_AROUND_END.
-   * Additionally searches for for incoming or outcoming routes, based on directionType passed. Can be SEARCH_INCOMING or SEARCH_OUTCOMING.
-   */
-  findClosest(route, routes, distanceThreshold, directionType, searchType) {
-    let baseLocation = searchType === SEARCH_AROUND_START ? route.end : route.start;
-    return routes.filter((filteredRoute) => {
-      let searchedLocation = directionType === SEARCH_INCOMING ? filteredRoute.end : filteredRoute.start;
-      const distance = distanceCalculation.distanceBetweenLocations(baseLocation, searchedLocation);
-      return distance <= distanceThreshold;
-    });
   }
 }
 

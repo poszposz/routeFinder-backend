@@ -1,61 +1,17 @@
-const LocationCoordinate = require('../utilities/locationCoordinate');
-var distanceCalculation = require('../utilities/distanceCalculation');
-
 class Vertex {
 
-  constructor(id, incomingRoutes, outcomingRoutes) {
+  constructor(id, incomingRoutes, outcomingRoutes, parentRouteId) {
     this.id = id;
-
+    this.parentRouteId = parentRouteId;
     const incomingLocations = incomingRoutes.map((incomingRoute) => incomingRoute.end);
     const outcomingLocations =  outcomingRoutes.map((outcomingRoutes) => outcomingRoutes.start);
-    const allLocations = incomingLocations.concat(outcomingLocations);
-    let length = allLocations.length !== 0 ? allLocations.length : 1;
-    const latitudeAverage = allLocations.reduce(((accumulator, current) => accumulator + current.latitude), 0) / length;
-    const longitudeAverage = allLocations.reduce(((accumulator, current) => accumulator + current.longitude), 0) / length;
-    this.centerLocation = new LocationCoordinate(latitudeAverage, longitudeAverage);
-
+    if (outcomingLocations.length > 0) {
+      this.centerLocation = outcomingLocations[0];
+    } else {
+      this.centerLocation = incomingLocations[0];
+    }
     this.incomingRoutes = incomingRoutes === undefined ? [] : incomingRoutes;
     this.outcomingRoutes = outcomingRoutes === undefined ? [] : outcomingRoutes;
-
-    this.assignTotalWeights();
-  }
-
-  assignTotalWeights() {
-    this.assignEndingWeights(this.incomingRoutes);
-    this.assignStartingWeights(this.outcomingRoutes);
-  }
-
-  assignEndingWeights(routes) {
-    routes.forEach((route) => {
-      if (route.hasAssignedEndingWeight) { return; }
-      let distanceToEnd = distanceCalculation.distanceBetweenLocations(route.end, this.centerLocation);
-      distanceToEnd = distanceToEnd <= 5 ? 0 : distanceToEnd;
-      const weight = (route.totalLength * route.weightMultiplier) + (distanceToEnd * 8);
-      route.weight = weight;
-      route.hasAssignedEndingWeight = true;
-    });
-  }
-
-  assignStartingWeights(routes) {
-    routes.forEach((route) => {
-      if (route.hasAssignedStartingWeight) { return; }
-      let distanceToStart = distanceCalculation.distanceBetweenLocations(route.start, this.centerLocation);
-      distanceToStart = distanceToStart <= 5 ? 0 : distanceToStart;
-      const weight = (route.totalLength * route.weightMultiplier) + (distanceToStart * 8);
-      route.weight = weight;
-      route.hasAssignedStartingWeight = true;
-    });
-  }
-
-  reloadCenterLocation() {
-    // const incomingLocations = this.incomingRoutes.map((incomingRoute) => incomingRoute.end);
-    // const outcomingLocations =  this.outcomingRoutes.map((outcomingRoutes) => outcomingRoutes.start);
-    // const allLocations = incomingLocations.concat(outcomingLocations);
-    
-    // let length = allLocations.length !== 0 ? allLocations.length : 1;
-    // const latitudeAverage = allLocations.reduce(((accumulator, current) => accumulator + current.latitude), 0) / length;
-    // const longitudeAverage = allLocations.reduce(((accumulator, current) => accumulator + current.longitude), 0) / length;
-    // this.centerLocation = new LocationCoordinate(latitudeAverage, longitudeAverage);
   }
 
   generateOutcomingRoutes() {
@@ -72,9 +28,6 @@ class Vertex {
   }
 
   addIncomingRoutes(routes) {
-    routes.forEach(route => {
-      route.hasAssignedEndingWeight = false;
-    });
     const foundRoutes = routes.filter((route) => {
       if (route.startPointVertexId === this.id & route.endPointVertexId === this.id) { return false; }
       const foundRoute = this.incomingRoutes.find((incomingRoute) => {
@@ -84,13 +37,9 @@ class Vertex {
     });
     if (foundRoutes.length === 0) { return; }
     this.incomingRoutes = this.incomingRoutes.concat(foundRoutes);
-    this.assignTotalWeights();
   }
 
   addOutcomingRoutes(routes) {
-    routes.forEach(route => {
-      route.hasAssignedStartingWeight = false;
-    });
     const foundRoutes = routes.filter((route) => {
       if (route.startPointVertexId === this.id & route.endPointVertexId === this.id) { return false; }
       const foundRoute = this.outcomingRoutes.find((outcomingRoute) => {
@@ -100,7 +49,6 @@ class Vertex {
     });
     if (foundRoutes.length === 0) { return; }
     this.outcomingRoutes = this.outcomingRoutes.concat(foundRoutes);
-    this.assignTotalWeights();
   }
 
   debugDescription() {
