@@ -38,8 +38,8 @@ class GraphCreator {
     end = new Date() - start;
     console.log(`Total vertices before removing links: ${this.vertices.length}`);
     this.removeLinkingVertices();
-    console.info('Linking routes remove time: %dms', end);
     console.log(`Total vertices after removing links: ${this.vertices.length}`);
+    console.info('Linking routes remove time: %dms', end);
     this.assignBidirectional();
     end = new Date() - start;
     console.info('Bidirectional routes assignment time: %dms', end);
@@ -81,13 +81,16 @@ class GraphCreator {
   removeLinkingVertices() {
     let toRemove = [];
     this.vertices.forEach(vertex => {
-      if (vertex.incomingRoutes.length !== 1 | vertex.outcomingRoutes.length !== 1) { return; };
+      if (vertex.incomingRoutes.length !== 1 | vertex.outcomingRoutes.length !== 1 | vertex.isMerged) { return; };
       toRemove.push(vertex);
       let incoming = vertex.incomingRoutes[0];
       let outcoming = vertex.outcomingRoutes[0];
       let merged = incoming.mergeWith(outcoming);
       incoming.startVertex.addOutcomingRoutes([merged]);
       outcoming.endVertex.addIncomingRoutes([merged]);
+
+      incoming.startVertex.isMerged = true;
+      outcoming.endVertex.isMerged = true;
 
       outcoming.endVertex.removeIncomingRoute(outcoming);
       incoming.startVertex.removeOutcomingRoute(incoming);
