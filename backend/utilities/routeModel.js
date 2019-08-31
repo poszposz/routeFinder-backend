@@ -33,35 +33,28 @@ class Route {
     this.isLink = false;
     if (this.category.includes('ddr')) {
       this.weightMultiplier = 0.7;
-    }
-    if (this.category.includes('kontrapas')) {
+    } else if (this.category.includes('kontrapas')) {
       this.weightMultiplier = 0.8;
-    }
-    if (this.category.includes('cpr')) {
+    } else if (this.category.includes('cpr')) {
       this.weightMultiplier = 0.8;
-    }
-    if (this.category.includes('kontraruch')) {
+    } else if (this.category.includes('kontraruch')) {
       this.weightMultiplier = 0.8;
-    }
-    if (this.category.includes('c16t22')) {
-    this.weightMultiplier = 0.9;
-    }
-    if (this.category.includes('standard_link')) {
+    } else if (this.category.includes('c16t22')) {
+      this.weightMultiplier = 0.9;
+    } else if (this.category.includes('standard_link')) {
       if (this.totalLength <= 10) {
-        this.weightMultiplier = 1;
+        this.weightMultiplier = 1.5;
       } else {
         this.weightMultiplier = 2;
       }
       this.isLink = true;
-    }
-    if (this.category.includes('isolation_link')) {
+    } else if (this.category.includes('isolation_link')) {
       this.weightMultiplier = 4;
-    }
-    else {
+    } else {
       if (this.isBikeRoute) {
         this.weightMultiplier = 1;
       } else {
-        this.weightMultiplier = 1.1;
+        this.weightMultiplier = 1.2;
       }
     }
     this.weight = (this.totalLength * this.weightMultiplier); 
