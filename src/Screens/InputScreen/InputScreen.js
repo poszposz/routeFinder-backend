@@ -85,7 +85,7 @@ class InputScreen extends Component {
             </button>
           </form>
           <br></br>
-            <label className="label-small">Version 1.1.0</label>
+            <label className="label-small">Version 1.1.1</label>
         </header>
       </div>
     );
