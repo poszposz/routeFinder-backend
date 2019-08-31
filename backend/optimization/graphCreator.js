@@ -75,10 +75,7 @@ class GraphCreator {
   };
 
   assignBidirectional() {
-    // let count = 0;
     this.vertices.forEach((vertex) => {
-      // count += 1;
-      // console.log(`Working on vertex: ${count}`);
       vertex.assignBidirectional();
     });
   }
@@ -93,6 +90,7 @@ class GraphCreator {
       let merged = incoming.mergeWith(outcoming);
       incoming.startVertex.addOutcomingRoutes([merged]);
       outcoming.endVertex.addIncomingRoutes([merged]);
+
       outcoming.endVertex.removeIncomingRoute(outcoming);
       incoming.startVertex.removeOutcomingRoute(incoming);
     });

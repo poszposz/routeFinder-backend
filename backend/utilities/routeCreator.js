@@ -73,7 +73,7 @@ function obtainCompleteAStarRoute(graph, decodedStartLocation, decodedEndLocatio
       console.log(`*******************************************************`);
       if (bestNavigationRoute === undefined) {
         bestNavigationRoute = navigationRoute;
-      } else if (navigationRoute.totalWeight < bestNavigationRoute.totalWeightReachExcluded) {
+      } else if (navigationRoute.totalWeight < bestNavigationRoute.totalWeight) {
         bestNavigationRoute = navigationRoute;
       }
     });

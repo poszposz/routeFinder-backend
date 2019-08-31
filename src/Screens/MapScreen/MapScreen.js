@@ -24,11 +24,12 @@ class MapScreen extends Component {
     console.log(`Starting: ${this.props.location.state.startLocation}`);
     console.log(`Ending: ${this.props.location.state.endLocation}`);
 
-    fetch(`http://104.248.25.229:3001/api/routes/visualizationPoints?startLocation=${startLocation}&endLocation=${endLocation}`)
-    // fetch(`http://localhost:3001/api/routes/visualizationPointsAstar?startLocation=${startLocation}&endLocation=${endLocation}`)
+    // fetch(`http://104.248.25.229:3001/api/routes/visualizationPoints?startLocation=${startLocation}&endLocation=${endLocation}`)
+    fetch(`http://localhost:3001/api/routes/visualizationPointsAstar?startLocation=${startLocation}&endLocation=${endLocation}`)
         .then(response => response.json())
         .then(json => {
-          this.setState({ waypointsLoaded: true, waypoints: json });
+          console.log(json);
+          this.setState({ waypointsLoaded: true, waypoints: json.route, reachStart: json.reachStart, reachEnd: json.reachEnd });
         })
         .catch(error => {
           this.setState({ error });
@@ -37,7 +38,7 @@ class MapScreen extends Component {
   
   render() {
     const { startLocation, endLocation } = this.props.location.state;
-    const { waypointsLoaded, waypoints, error } = this.state;
+    const { waypointsLoaded, waypoints, reachStart, reachEnd, error } = this.state;
     if (error != null) {
       return (
         <div className="App">
@@ -65,6 +66,8 @@ class MapScreen extends Component {
               url="https://{s}.tile.osm.org/{z}/{x}/{y}.png"
             />
             <Polyline positions={waypoints} color={'blueviolet'}/>
+            <Polyline positions={reachStart} color={'red'}/>
+            <Polyline positions={reachEnd} color={'red'}/>
           </Map>
         </div>
     );

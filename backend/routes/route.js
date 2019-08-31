@@ -105,7 +105,12 @@ router.get('/visualizationPoints', async function(req, res, next) {
     const mappedResults = result.routes.map(route => route.segments).flatten().map(segment => {
       return [parseFloat(segment.start.latitude), parseFloat(segment.start.longitude)];
     });
-    res.json(mappedResults);
+    let response = {
+      'route': mappedResults,
+      'reachStart': result.reachStartCoordinates(),
+      'reachEnd': result.reachEndCoordinates(),
+    };
+    res.json(response);
   } catch (error) {
     console.log(`Error: ${error}`);
     next(error);
@@ -121,7 +126,12 @@ router.get('/visualizationPointsAStar', async function(req, res, next) {
     const mappedResults = result.routes.map(route => route.segments).flatten().map(segment => {
       return [parseFloat(segment.start.latitude), parseFloat(segment.start.longitude)];
     });
-    res.json(mappedResults);
+    let response = {
+      'route': mappedResults,
+      'reachStart': result.reachStartCoordinates(),
+      'reachEnd': result.reachEndCoordinates(),
+    };
+    res.json(response);
   } catch (error) {
     console.log(`Error: ${error}`);
     next(error);
