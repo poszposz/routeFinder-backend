@@ -38,8 +38,6 @@ class GraphCreator {
     end = new Date() - start;
     console.log(`Total vertices before removing links: ${this.vertices.length}`);
     this.removeLinkingVertices();
-    this.removeLinkingVertices();
-    this.removeLinkingVertices();
     console.info('Linking routes remove time: %dms', end);
     console.log(`Total vertices after removing links: ${this.vertices.length}`);
     this.assignBidirectional();
