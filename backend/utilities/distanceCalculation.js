@@ -1,28 +1,29 @@
 require('../extensions/number');
 require('../extensions/array');
+const haversine = require('haversine')
 
 function distanceBetweenLocations(start, end) {
-  const earthRadius = 6371;
-  const latitudeDiff = Number(end.latitude-start.latitude).toRad();
-  const longitudeDiff = Number(end.longitude-start.longitude).toRad();
-  const a = Math.sin(latitudeDiff) * Math.sin(latitudeDiff/2) +
-          Math.cos(Number(start.latitude).toRad()) * Math.cos(Number(end.latitude).toRad()) *
-          Math.sin(longitudeDiff/2) * Math.sin(longitudeDiff/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  const result = Math.floor((earthRadius * c) * 1000);
-  return result;
+  let startDictionary = {
+    latitude: start.latitude,
+    longitude: start.longitude
+  }
+  let endDictionary = {
+    latitude: end.latitude,
+    longitude: end.longitude
+  }
+  return Math.floor(haversine(startDictionary, endDictionary, {unit: 'meter'}));
 }
 
 function exactDistanceBetweenLocations(start, end) {
-  const earthRadius = 6371;
-  const latitudeDiff = Number(end.latitude-start.latitude).toRad();
-  const longitudeDiff = Number(end.longitude-start.longitude).toRad();
-  const a = Math.sin(latitudeDiff) * Math.sin(latitudeDiff/2) +
-          Math.cos(Number(start.latitude).toRad()) * Math.cos(Number(end.latitude).toRad()) *
-          Math.sin(longitudeDiff/2) * Math.sin(longitudeDiff/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  const result = (earthRadius * c) * 1000;
-  return result;
+  let startDictionary = {
+    latitude: start.latitude,
+    longitude: start.longitude
+  }
+  let endDictionary = {
+    latitude: end.latitude,
+    longitude: end.longitude
+  }
+  return haversine(startDictionary, endDictionary, {unit: 'meter'});
 }
 
 function segmentLength(segment) {

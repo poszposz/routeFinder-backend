@@ -82,8 +82,8 @@ function obtainCompleteAStarRoute(graph, decodedStartLocation, decodedEndLocatio
   console.log(`*******************************************************`);
   console.log(`Executed A*: ${(possibleStartVertices.length * possibleEndVertices.length)} times.`);
   console.info('A Star execution time: %dms', end)
-  console.log(`Best route length route only: ${bestNavigationRoute.totalLengthReachExcluded}`);
-  console.log(`Best route weight route only: ${bestNavigationRoute.totalWeightReachExcluded}`);
+  console.log(`Best route length: ${bestNavigationRoute.totalLength}`);
+  console.log(`Best route weight: ${bestNavigationRoute.totalWeight}`);
   console.log(`*******************************************************`);
 
   bestNavigationRoute.loadTotalWeight();

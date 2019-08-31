@@ -1,8 +1,10 @@
 class Vertex {
 
-  constructor(id, incomingRoutes, outcomingRoutes, parentRoute) {
+  constructor(id, incomingRoutes, outcomingRoutes, parentRoute, isRouteStarting, isRouteEnding) {
     this.id = id;
     this.parentRoute = parentRoute;
+    this.isRouteStarting = isRouteStarting;
+    this.isRouteEnding = isRouteEnding;
     const incomingLocations = incomingRoutes.map((incomingRoute) => incomingRoute.end);
     const outcomingLocations =  outcomingRoutes.map((outcomingRoutes) => outcomingRoutes.start);
     if (outcomingLocations.length > 0) {

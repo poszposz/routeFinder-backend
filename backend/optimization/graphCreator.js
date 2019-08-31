@@ -55,7 +55,7 @@ class GraphCreator {
     parentRoute.children.forEach((route) => {
       if (index === 0) {
         this.addSingleVertex([], [route], parentRoute);
-        previousVertex = this.addSingleVertex([route], [], parentRoute);
+        previousVertex = this.addSingleVertex([route], [], parentRoute, true, false);
         index = 1;
         return
       }
@@ -63,11 +63,11 @@ class GraphCreator {
         previousVertex.addOutcomingRoutes([route]);
       }
       if (index === parentRoute.children.length - 1) {
-        this.addSingleVertex([route], [], parentRoute);
+        this.addSingleVertex([route], [], parentRoute, false, true);
         return;
       }
       let nextRoute = parentRoute.children[index + 1];
-      previousVertex = this.addSingleVertex([route], [nextRoute], parentRoute);
+      previousVertex = this.addSingleVertex([route], [nextRoute], parentRoute, false, false);
       index += 1;
     }); 
   };
@@ -98,9 +98,9 @@ class GraphCreator {
     this.vertices = this.vertices.filter(vertex => !toRemove.includes(vertex));
   }
 
-  addSingleVertex(incomingRoutes, outcomingRoutes, parentRoute) {
+  addSingleVertex(incomingRoutes, outcomingRoutes, parentRoute, isRouteStarting, isRouteEnding) {
     const vertexId = this.autoincrementedId();
-    const vertex = new Vertex(vertexId, incomingRoutes, outcomingRoutes, parentRoute);
+    const vertex = new Vertex(vertexId, incomingRoutes, outcomingRoutes, parentRoute, isRouteStarting, isRouteEnding);
     this.vertices.push(vertex);
     return vertex;
   }
@@ -117,6 +117,12 @@ class GraphCreator {
         return distance < desiredNearbyDistanceThreshold;
       });
       nearbyVertices.forEach(iteratedVertex => {
+        if (iteratedVertex.parentRoute.isBridge & !(iteratedVertex.isRouteStarting | iteratedVertex.isRouteEnding)) { 
+          return; 
+        }
+        if (vertex.parentRoute.isBridge & !(vertex.isRouteStarting | vertex.isRouteEnding)) { 
+          return; 
+        }
         this.linkVertices(vertex, iteratedVertex);
         count += 1;
       });
@@ -145,7 +151,6 @@ class GraphCreator {
           let route = new Route(uuidv4(), "isolation_link", "isolation_link", [linkSegment], false);
           iteratedVertex.addIncomingRoutes([route]);
           vertex.addOutcomingRoutes([route]);
-          // console.log(`Found isolated, linking ${iteratedVertex.parentRoute.name} with ${vertex.parentRoute.name}`);
         });
       });
   }

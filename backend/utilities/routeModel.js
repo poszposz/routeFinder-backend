@@ -13,7 +13,7 @@ class Route {
     this.startPointVertexId = 0;
     this.endPointVertexId = 0;
 
-    this.name = name;
+    this.name = name === null ? "" : name;
     this.category = category === undefined ? "" : category;
     this.bidirectional = 1; 
     let originalSegments = segments;
@@ -26,42 +26,57 @@ class Route {
     this.parent = parent;
     this.children = children;
     this.assignWeight();
+    this.predictBridge();
   }
 
   assignWeight() {
     this.isLink = false;
-    switch (this.category) {
-      case 'ddr':
-          this.weightMultiplier = 0.7;
-        break;
-      case 'kontrapas':
-          this.weightMultiplier = 0.8;
-        break;
-      case 'cpr':
-          this.weightMultiplier = 0.8;
-        break;
-      case 'kontraruch':
-          this.weightMultiplier = 0.8;
-        break;
-      case 'c16t22':
-        this.weightMultiplier = 0.9;
-        break;
-      case 'standard_link':
-          this.weightMultiplier = 2;
-          this.isLink = true;
-          break;
-      case 'isolation_link':
-          this.weightMultiplier = 4;
-          break;
-      default:
-        if (this.isBikeRoute) {
-          this.weightMultiplier = 1;
-        } else {
-          this.weightMultiplier = 1.1;
-        }
-        break;
+    if (this.category.includes('ddr')) {
+      this.weightMultiplier = 0.7;
+    }
+    if (this.category.includes('kontrapas')) {
+      this.weightMultiplier = 0.8;
+    }
+    if (this.category.includes('cpr')) {
+      this.weightMultiplier = 0.8;
+    }
+    if (this.category.includes('kontraruch')) {
+      this.weightMultiplier = 0.8;
+    }
+    if (this.category.includes('c16t22')) {
+    this.weightMultiplier = 0.9;
+    }
+    if (this.category.includes('standard_link')) {
+      if (this.totalLength <= 10) {
+        this.weightMultiplier = 1;
+      } else {
+        this.weightMultiplier = 2;
+      }
+      this.isLink = true;
+    }
+    if (this.category.includes('isolation_link')) {
+      this.weightMultiplier = 4;
+    }
+    else {
+      if (this.isBikeRoute) {
+        this.weightMultiplier = 1;
+      } else {
+        this.weightMultiplier = 1.1;
+      }
     }
     this.weight = (this.totalLength * this.weightMultiplier); 
+  }
+
+  predictBridge() {
+    // As we have no info about it, we predict whether a route is on differnt level by name guessing.
+    // If a route is on another level we won't link it with another ones unless from start or end.
+    const bridgeNames = ['most', 'kladka'];
+    this.isBridge = false;
+    bridgeNames.forEach(name => {
+      if (this.name.toLowerCase().includes(name)) {
+        this.isBridge = true;
+      }
+    });
   }
 
   normalizeSegments(segments) {
