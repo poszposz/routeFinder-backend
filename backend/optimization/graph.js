@@ -68,7 +68,7 @@ class Graph {
     var graph = createGraph();
     this.vertices.forEach(vertex => {
       graph.addNode(vertex.id, {vertex: vertex});
-      [vertex.outcomingRoutes].flatten().forEach((route) => {
+      vertex.outcomingRoutes.forEach((route) => {
         graph.addLink(route.startPointVertexId, route.endPointVertexId, {weight: route.weight});
       });
     })

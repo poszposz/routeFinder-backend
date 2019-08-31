@@ -18,8 +18,14 @@ class Vertex {
   }
 
   assignVertexIds() {
-    this.incomingRoutes.forEach(route => route.endPointVertexId = this.id);
-    this.outcomingRoutes.forEach(route => route.startPointVertexId = this.id);
+    this.incomingRoutes.forEach(route => { 
+      route.endPointVertexId = this.id
+      route.endVertex = this;
+    });
+    this.outcomingRoutes.forEach(route => { 
+      route.startPointVertexId = this.id
+      route.startVertex = this;
+    });
   }
 
   generateOutcomingRoutes() {
@@ -36,37 +42,27 @@ class Vertex {
   }
 
   addIncomingRoutes(routes) {
-    // const foundRoutes = routes.filter((route) => {
-    //   let alreadyContains = this.incomingLinkList.includes(route.startPointVertexId);
-    //   if (alreadyContains) {
-    //     console.log('**********************************************');
-    //     console.log('Ignoring added incoming, already exists');
-    //     console.log(`Already existing incoming links: ${this.incomingLinkList}`);
-    //     console.log(`Trying to add: ${route.endPointVertexId}`);
-    //     console.log('**********************************************');
-    //   }
-    //   return alreadyContains;
-    // });
-    // if (foundRoutes.length === 0) { return; }
     this.incomingRoutes = this.incomingRoutes.concat(routes);
     this.assignVertexIds();
     this.generateLinkLists();
   }
 
   addOutcomingRoutes(routes) {
-    // const foundRoutes = routes.filter((route) => {
-    //   let alreadyContains = this.outcomingLinkList.includes(route.endPointVertexId);
-    //   if (alreadyContains) {
-    //     console.log('**********************************************');
-    //     console.log('Ignoring added outcoming, already exists');
-    //     console.log(`Already existing outcoming links: ${this.outcomingLinkList}`);
-    //     console.log(`Trying to add: ${route.startPointVertexId}`);
-    //     console.log('**********************************************');
-    //   }
-    //   return alreadyContains;
-    // });
-    // if (foundRoutes.length === 0) { return; }
     this.outcomingRoutes = this.outcomingRoutes.concat(routes);
+    this.assignVertexIds();
+    this.generateLinkLists();
+  }
+
+  removeIncomingRoute(route) {
+    route.endVertex = undefined;
+    this.incomingRoutes = this.incomingRoutes.filter(filteredRoute => filteredRoute !== route);
+    this.assignVertexIds();
+    this.generateLinkLists();
+  }
+
+  removeOutcomingRoute(route) {
+    route.startVertex = undefined;
+    this.outcomingRoutes = this.outcomingRoutes.filter(filteredRoute => filteredRoute !== route);
     this.assignVertexIds();
     this.generateLinkLists();
   }

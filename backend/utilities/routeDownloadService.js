@@ -59,15 +59,10 @@ async function downloadCompleteGraph() {
     url: suggestedRoutesQuery,
   });
   let suggestedRoutes = parseRoutes(suggestedRoutesResponse.data);
-  console.log(`Suggested routes length: ${suggestedRoutes.length}`);
   let suggestedRoutesSplitted = suggestedRoutes.map((route) => route.split());
-  let childrenCount = suggestedRoutesSplitted.reduce(((current, route) => current + route.children.length), 0)
-  console.log(`Suggested routes splitted length: ${childrenCount}`);
 
   let bikeRoutes = parseRoutes(bikeRoutesResponse.data);
-  console.log(`Bike routes length: ${bikeRoutes.length}`);
   let bikeRoutesSplitted = bikeRoutes.map((route) => route.split());
-  console.log(`Bike routes splitted length: ${bikeRoutesSplitted.length}`);
   return suggestedRoutesSplitted.concat(bikeRoutesSplitted);
 }
 

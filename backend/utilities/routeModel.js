@@ -118,6 +118,10 @@ class Route {
     return [prefixingSegments, suffixingSegments];
   }
 
+  mergeWith(route) {
+    return new Route(this.id, this.name, this.category, this.segments.concat(route.segments), this.isBikeRoute, this.parent, this.children);
+  }
+
   reversed() {
     let reversedSegments = this.segments.concat().map((segment) => segment.reversed()).reverse();
     let route;

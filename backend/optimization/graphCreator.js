@@ -30,20 +30,18 @@ class GraphCreator {
     });
     console.log(`Child routes amount: ${this.childRoutes.length}`);
     console.log(`Vertices count: ${this.vertices.length}`);
-    this.childRoutes.forEach(route => {
-      if (route.startPointVertexId === 0) {
-        console.log(`Found route with 0 start, name: ${route.name}, children amount: ${route.parent.children.length}`);
-      }
-      if (route.endPointVertexId === 0) {
-        console.log(`Found route with 0 end, name: ${route.name}, children amount: ${route.parent.children.length}`);
-      }
-    });
     var end = new Date() - start;
     console.info('Route ending association time: %dms', end);
     this.extractNearbyVertices();
-    console.log(`Vertices count after extraction: ${this.vertices.length}`);
     end = new Date() - start;
     console.info('Nearby vertices extraction time: %dms', end);
+    end = new Date() - start;
+    console.log(`Total vertices before removing links: ${this.vertices.length}`);
+    this.removeLinkingVertices();
+    this.removeLinkingVertices();
+    this.removeLinkingVertices();
+    console.info('Linking routes remove time: %dms', end);
+    console.log(`Total vertices after removing links: ${this.vertices.length}`);
     this.assignBidirectional();
     end = new Date() - start;
     console.info('Bidirectional routes assignment time: %dms', end);
@@ -72,7 +70,6 @@ class GraphCreator {
       }
       let nextRoute = parentRoute.children[index + 1];
       previousVertex = this.addSingleVertex([route], [nextRoute], parentRoute);
-      previousVertex.addOutcomingRoutes([route]);
       index += 1;
     }); 
   };
@@ -84,6 +81,22 @@ class GraphCreator {
       // console.log(`Working on vertex: ${count}`);
       vertex.assignBidirectional();
     });
+  }
+
+  removeLinkingVertices() {
+    let toRemove = [];
+    this.vertices.forEach(vertex => {
+      if (vertex.incomingRoutes.length !== 1 | vertex.outcomingRoutes.length !== 1) { return; };
+      toRemove.push(vertex);
+      let incoming = vertex.incomingRoutes[0];
+      let outcoming = vertex.outcomingRoutes[0];
+      let merged = incoming.mergeWith(outcoming);
+      incoming.startVertex.addOutcomingRoutes([merged]);
+      outcoming.endVertex.addIncomingRoutes([merged]);
+      outcoming.endVertex.removeIncomingRoute(outcoming);
+      incoming.startVertex.removeOutcomingRoute(incoming);
+    });
+    this.vertices = this.vertices.filter(vertex => !toRemove.includes(vertex));
   }
 
   addSingleVertex(incomingRoutes, outcomingRoutes, parentRoute) {
