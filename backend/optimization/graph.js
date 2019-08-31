@@ -23,10 +23,7 @@ class Graph {
   }
 
   nearestEndVertices(location) {
-    const possibleEndVertices = this.vertices.filter((vertex) => {
-      return vertex.incomingRoutes.length > 0
-    });
-    return this.nearestVertices(possibleEndVertices, location);
+    return this.nearestVertices(this.vertices, location);
   }
 
   nearestVertices(vertices, location) {
@@ -71,7 +68,7 @@ class Graph {
     var graph = createGraph();
     this.vertices.forEach(vertex => {
       graph.addNode(vertex.id, {vertex: vertex});
-      [vertex.incomingRoutes, vertex.outcomingRoutes].flatten().forEach((route) => {
+      [vertex.outcomingRoutes].flatten().forEach((route) => {
         graph.addLink(route.startPointVertexId, route.endPointVertexId, {weight: route.weight});
       });
     })

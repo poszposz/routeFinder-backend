@@ -64,20 +64,16 @@ function obtainCompleteAStarRoute(graph, decodedStartLocation, decodedEndLocatio
       });
       const shortestRouteArray = pathFinder.find(endVertexData.vertex.id, startVertexData.vertex.id);
       const shortestRouteVeritceIds = shortestRouteArray.map(data => data.id);
-      console.log(`Nearest start vertex: ${JSON.stringify(startVertexData.vertex.id)}, end: ${JSON.stringify(endVertexData.vertex.id)}`);
-      console.log(`Vertices ids: ${shortestRouteVeritceIds}`);
-      console.log(`*******************************************************`);
-      
+      // console.log(`Nearest start vertex: ${JSON.stringify(startVertexData.vertex.id)}, end: ${JSON.stringify(endVertexData.vertex.id)}`);
       const combined = graph.parseOptimizationResult(shortestRouteVeritceIds);
-      console.log(`All weights: ${combined.map(route => route.weight)}`);
-      console.log(`*******************************************************`);
-      console.log(`All lengths: ${combined.map(route => route.totalLength)}`);
       let navigationRoute = new NavigationRoute(decodedStartLocation, decodedEndLocation, startVertexData.vertex, endVertexData.vertex, combined);
       console.log(`*******************************************************`);
       console.log(`Found total weight A*: ${navigationRoute.totalWeightReachExcluded}`);
+      console.log(`Found total length A*: ${navigationRoute.totalLengthReachExcluded}`);
+      console.log(`*******************************************************`);
       if (bestNavigationRoute === undefined) {
         bestNavigationRoute = navigationRoute;
-      } else if (navigationRoute.totalWeight < bestNavigationRoute.totalWeight) {
+      } else if (navigationRoute.totalWeight < bestNavigationRoute.totalWeightReachExcluded) {
         bestNavigationRoute = navigationRoute;
       }
     });
@@ -85,12 +81,10 @@ function obtainCompleteAStarRoute(graph, decodedStartLocation, decodedEndLocatio
   var end = new Date() - start
   console.log(`*******************************************************`);
   console.log(`Executed A*: ${(possibleStartVertices.length * possibleEndVertices.length)} times.`);
-  console.log(`*******************************************************`);
   console.info('A Star execution time: %dms', end)
-  console.log(`*******************************************************`);
   console.log(`Best route length route only: ${bestNavigationRoute.totalLengthReachExcluded}`);
-  console.log(`*******************************************************`);
   console.log(`Best route weight route only: ${bestNavigationRoute.totalWeightReachExcluded}`);
+  console.log(`*******************************************************`);
 
   bestNavigationRoute.loadTotalWeight();
   bestNavigationRoute.loadTotalLength();

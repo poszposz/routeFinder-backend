@@ -6,7 +6,7 @@ var uuidv4 = require('../utilities/UUIDGenerator');
 
 const isolatedVerticesLinkingThreshold = 150;
 
-const desiredNearbyDistanceThreshold = 30;
+const desiredNearbyDistanceThreshold = 50;
 
 class GraphCreator {
 
@@ -28,6 +28,16 @@ class GraphCreator {
     this.routes.forEach((route) => {
       this.createInRouteVertices(route);
     });
+    console.log(`Child routes amount: ${this.childRoutes.length}`);
+    console.log(`Vertices count: ${this.vertices.length}`);
+    this.childRoutes.forEach(route => {
+      if (route.startPointVertexId === 0) {
+        console.log(`Found route with 0 start, name: ${route.name}, children amount: ${route.parent.children.length}`);
+      }
+      if (route.endPointVertexId === 0) {
+        console.log(`Found route with 0 end, name: ${route.name}, children amount: ${route.parent.children.length}`);
+      }
+    });
     var end = new Date() - start;
     console.info('Route ending association time: %dms', end);
     this.extractNearbyVertices();
@@ -48,61 +58,38 @@ class GraphCreator {
     let previousVertex;
     parentRoute.children.forEach((route) => {
       if (index === 0) {
-        let startingVertex = this.addSingleVertex([], [route], parentRoute.id);
-        let endingVertex = this.addSingleVertex([route], [], parentRoute.id);
-        parentRoute.startPointVertexId = startingVertex.id;
-        if (parentRoute.children.length === 1) {
-          parentRoute.endPointVertexId = endingVertex.id;
-          // endingVertex.addIncomingRoutes([parentRoute]);
-        }
-        // startingVertex.addOutcomingRoutes([parentRoute]);
-        previousVertex = endingVertex;
+        this.addSingleVertex([], [route], parentRoute);
+        previousVertex = this.addSingleVertex([route], [], parentRoute);
         index = 1;
         return
       }
+      if (index === 1) {
+        previousVertex.addOutcomingRoutes([route]);
+      }
       if (index === parentRoute.children.length - 1) {
-        let vertex = this.addSingleVertex([route], [], parentRoute.id);
-        route.startPointVertexId = previousVertex.id;
-        parentRoute.endPointVertexId = vertex.id;
-        // vertex.addIncomingRoutes([parentRoute]);
+        this.addSingleVertex([route], [], parentRoute);
         return;
       }
       let nextRoute = parentRoute.children[index + 1];
-      previousVertex = this.addSingleVertex([route], [nextRoute], parentRoute.id);
-      if (index === 1) {
-        route.startPointVertexId = previousVertex.id;
-      }
+      previousVertex = this.addSingleVertex([route], [nextRoute], parentRoute);
+      previousVertex.addOutcomingRoutes([route]);
       index += 1;
     }); 
   };
 
   assignBidirectional() {
+    // let count = 0;
     this.vertices.forEach((vertex) => {
-      // We find all bidirectional routes coming in a nd out from a given vertex.
-      const bidirectionalIncomingRoutes = vertex.incomingRoutes.filter((route) => route.bidirectional);
-      const bidirectionalOutcomingRoutes = vertex.outcomingRoutes.filter((route) => route.bidirectional);
-      
-      // We concatenate all incoming routes to outcoming routes and opposite.
-      vertex.addOutcomingRoutes(bidirectionalIncomingRoutes.map((route) => route.reversed()));
-      vertex.addIncomingRoutes(bidirectionalOutcomingRoutes.map((route) => route.reversed()));
+      // count += 1;
+      // console.log(`Working on vertex: ${count}`);
+      vertex.assignBidirectional();
     });
   }
 
-  /**
-   * Adds a single vertex with given incoming and outcoming routes. 
-   * Additionally checks if there is a vertex within desiredDistanceThreshold, if so, appends it with given routes.
-   */
-  addSingleVertex(incomingRoutes, outcomingRoutes, parentRouteId) {
-    // Create new vertex with all gathered data and append it to vertices prop.
+  addSingleVertex(incomingRoutes, outcomingRoutes, parentRoute) {
     const vertexId = this.autoincrementedId();
-    const vertex = new Vertex(vertexId, incomingRoutes, outcomingRoutes, parentRouteId);
+    const vertex = new Vertex(vertexId, incomingRoutes, outcomingRoutes, parentRoute);
     this.vertices.push(vertex);
-    incomingRoutes.forEach((incomingRoute) => {
-      incomingRoute.endPointVertexId = vertexId;
-    });
-    outcomingRoutes.forEach((outcomingRoute) => {
-      outcomingRoute.startPointVertexId = vertexId;
-    });
     return vertex;
   }
 
@@ -110,49 +97,43 @@ class GraphCreator {
     let count = 0;
     this.vertices.forEach(vertex => {
       let nearbyVertices = this.vertices.filter(iteratedVertex => {
-        if (iteratedVertex.parentRouteId === vertex.parentRouteId | vertex === iteratedVertex) { return false; }
-        if (Math.abs(iteratedVertex.centerLocation.latitude - vertex.centerLocation.latitude) > 0.001 | Math.abs(iteratedVertex.centerLocation.longitude - vertex.centerLocation.longitude) > 0.001) { 
+        if (iteratedVertex.parentRoute.id === vertex.parentRoute.id | vertex === iteratedVertex) { return false; }
+        if (Math.abs(iteratedVertex.centerLocation.latitude - vertex.centerLocation.latitude) > 0.002 | Math.abs(iteratedVertex.centerLocation.longitude - vertex.centerLocation.longitude) > 0.002) { 
           return false; 
         }
         const distance = distanceCalculation.distanceBetweenLocations(iteratedVertex.centerLocation, vertex.centerLocation);
         return distance < desiredNearbyDistanceThreshold;
       });
       nearbyVertices.forEach(iteratedVertex => {
-        count += 1;
-        console.log(`Created route: ${count}, between: ${vertex.id} and ${iteratedVertex.id}`);
-        // console.log(`Created route: ${count}`);
         this.linkVertices(vertex, iteratedVertex);
+        count += 1;
       });
     });
+    console.log(`Links amount: ${count}`);
   }
 
   linkVertices(startVertex, endVertex) {
     let linkSegment = new Segment([startVertex.centerLocation.longitude, startVertex.centerLocation.latitude, endVertex.centerLocation.longitude, endVertex.centerLocation.latitude], 'standard_link');
     let route = new Route(uuidv4(), "standard_link", "standard_link", [linkSegment], false);
     endVertex.addIncomingRoutes([route]);
-    route.startPointVertexId = startVertex.id;
-    route.endPointVertexId = endVertex.id;
     startVertex.addOutcomingRoutes([route]);
   }
 
   linkIsolatedVertices() {
       this.vertices.forEach(vertex => {
-        if (vertex.incomingRoutes.length > 1 | vertex.outcomingRoutes.length > 1) { return; }
+        if (vertex.outcomingRoutes.length > 1) { return; }
         let nearbyVertices = this.vertices.filter(iteratedVertex => {
-          if (iteratedVertex === vertex | iteratedVertex.parentRouteId === vertex.parentRouteId) { return false; }
+          if (iteratedVertex === vertex | iteratedVertex.parentRoute.id === vertex.parentRoute.id) { return false; }
           const distance = distanceCalculation.distanceBetweenLocations(iteratedVertex.centerLocation, vertex.centerLocation);
           return distance < isolatedVerticesLinkingThreshold
         });
-        if (nearbyVertices.length > 6) { return; }
-        console.log('Assigning isolated vertex');
         nearbyVertices.forEach(iteratedVertex => {
-          if (iteratedVertex === vertex | iteratedVertex.parentRouteId === vertex.parentRouteId) { return false; }
+          if (iteratedVertex === vertex | iteratedVertex.parentRoute.id === vertex.parentRoute.id) { return false; }
           let linkSegment = new Segment([iteratedVertex.centerLocation.longitude, iteratedVertex.centerLocation.latitude, vertex.centerLocation.longitude, vertex.centerLocation.latitude], 'isolation_link');
           let route = new Route(uuidv4(), "isolation_link", "isolation_link", [linkSegment], false);
           iteratedVertex.addIncomingRoutes([route]);
-          route.startPointVertexId = vertex.id;
-          route.endPointVertexId = iteratedVertex.id;
           vertex.addOutcomingRoutes([route]);
+          // console.log(`Found isolated, linking ${iteratedVertex.parentRoute.name} with ${vertex.parentRoute.name}`);
         });
       });
   }

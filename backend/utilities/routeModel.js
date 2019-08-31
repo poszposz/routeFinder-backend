@@ -24,29 +24,44 @@ class Route {
     this.end = this.segments[this.segments.length - 1].end;
     this.isBikeRoute = isBikeRoute;
     this.parent = parent;
-    this.isLink = false;
     this.children = children;
-    if (this.category.includes('ddr')) {
-      this.weightMultiplier = 0.7;
-    } else if (this.category.includes('kontrapas') | this.category.includes('cpr') | this.category.includes('kontraruch')) {
-      this.weightMultiplier = 0.8;
-    } else if (this.category.includes('c16t22')) {
-      this.weightMultiplier = 0.9;
-    } else if (this.category.includes('standard_link')) {
-      this.weightMultiplier = this.totalLength >= 15 ? 2 : 1;
-      this.isLink = true;
-    } else if (this.category.includes('isolation_link')) {
-      this.weightMultiplier = 10;
-      this.isLink = true;
-    } else if (!isBikeRoute) {
-      this.weightMultiplier = 1.1;
-    } else {
-      this.weightMultiplier = 1;
+    this.assignWeight();
+  }
+
+  assignWeight() {
+    this.isLink = false;
+    switch (this.category) {
+      case 'ddr':
+          this.weightMultiplier = 0.7;
+        break;
+      case 'kontrapas':
+          this.weightMultiplier = 0.8;
+        break;
+      case 'cpr':
+          this.weightMultiplier = 0.8;
+        break;
+      case 'kontraruch':
+          this.weightMultiplier = 0.8;
+        break;
+      case 'c16t22':
+        this.weightMultiplier = 0.9;
+        break;
+      case 'standard_link':
+          this.weightMultiplier = 2;
+          this.isLink = true;
+          break;
+      case 'isolation_link':
+          this.weightMultiplier = 4;
+          break;
+      default:
+        if (this.isBikeRoute) {
+          this.weightMultiplier = 1;
+        } else {
+          this.weightMultiplier = 1.1;
+        }
+        break;
     }
-    // A slight parameter substracted from route if it's a main one. To avoid routing via it's children separately.
-    let mainRouteWeightReduceConstant = (children == null & !this.isLink) ? 5 : 0;
-    let weight = (this.totalLength * this.weightMultiplier)
-    this.weight = weight >= 5 ? weight - mainRouteWeightReduceConstant : weight;
+    this.weight = (this.totalLength * this.weightMultiplier); 
   }
 
   normalizeSegments(segments) {

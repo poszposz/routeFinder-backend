@@ -47,21 +47,28 @@ async function downloadRestrictedGraph(start, end) {
 }
 
 async function downloadCompleteGraph() {
-  const bikeQuery = 'sql?q=' + fullRoutesBikeRouteQuery();
-  const bikeRouteresponse = await client({
+  const bikeRoutesQuery = 'sql?q=' + fullRoutesBikeRouteQuery();
+  const bikeRoutesResponse = await client({
     method: 'get',
-    url: bikeQuery,
+    url: bikeRoutesQuery,
   });
-  let bikeRoutes = parseRoutes(bikeRouteresponse.data);
-  const allRoutesQuery = 'sql?q=' + fullRoutesAllRouteQuery();
-  const allRouteResponse = await client({
+  
+  const suggestedRoutesQuery = 'sql?q=' + fullRoutesAllRouteQuery();
+  const suggestedRoutesResponse = await client({
     method: 'get',
-    url: allRoutesQuery,
+    url: suggestedRoutesQuery,
   });
-  let allRoutes = parseRoutes(allRouteResponse.data);
-  allRoutes = bikeRoutes.concat(allRoutes);
-  let allRoutesSplitted = allRoutes = allRoutes.map((route) => route.split()).flatten();  
-  return allRoutesSplitted;
+  let suggestedRoutes = parseRoutes(suggestedRoutesResponse.data);
+  console.log(`Suggested routes length: ${suggestedRoutes.length}`);
+  let suggestedRoutesSplitted = suggestedRoutes.map((route) => route.split());
+  let childrenCount = suggestedRoutesSplitted.reduce(((current, route) => current + route.children.length), 0)
+  console.log(`Suggested routes splitted length: ${childrenCount}`);
+
+  let bikeRoutes = parseRoutes(bikeRoutesResponse.data);
+  console.log(`Bike routes length: ${bikeRoutes.length}`);
+  let bikeRoutesSplitted = bikeRoutes.map((route) => route.split());
+  console.log(`Bike routes splitted length: ${bikeRoutesSplitted.length}`);
+  return suggestedRoutesSplitted.concat(bikeRoutesSplitted);
 }
 
 function parseRoutes(json) {
