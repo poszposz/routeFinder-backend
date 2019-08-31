@@ -31,6 +31,7 @@ class Route {
 
   assignWeight() {
     this.isLink = false;
+    this.isIsolationLink = false;
     if (this.category.includes('ddr')) {
       this.weightMultiplier = 0.7;
     } else if (this.category.includes('kontrapas')) {
@@ -50,6 +51,7 @@ class Route {
       this.isLink = true;
     } else if (this.category.includes('isolation_link')) {
       this.weightMultiplier = 4;
+      this.isIsolationLink = true;
     } else {
       if (this.isBikeRoute) {
         this.weightMultiplier = 1;

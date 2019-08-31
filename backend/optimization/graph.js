@@ -64,12 +64,22 @@ class Graph {
     }).filter((route) => route != null);
   }
 
-  genrateAStarGraph() {
+  genrateAStarGraph(searchShortest) {
     var graph = createGraph();
     this.vertices.forEach(vertex => {
       graph.addNode(vertex.id, {vertex: vertex});
       vertex.outcomingRoutes.forEach((route) => {
-        graph.addLink(route.startPointVertexId, route.endPointVertexId, {weight: route.weight});
+        let weight;
+        if (searchShortest) {
+          if (route.isLink | route.isIsolationLink) {
+            weight = route.weight;
+          } else {
+            weight = route.totalLength;
+          }
+        } else {
+          weight = route.weight;
+        }
+        graph.addLink(route.startPointVertexId, route.endPointVertexId, {weight: weight});
       });
     })
     return graph;

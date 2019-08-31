@@ -20,12 +20,12 @@ class MapScreen extends Component {
   }
 
   componentDidMount() {
-    const { startLocation, endLocation } = this.props.location.state;
+    const { startLocation, endLocation, routeType } = this.props.location.state;
     console.log(`Starting: ${this.props.location.state.startLocation}`);
     console.log(`Ending: ${this.props.location.state.endLocation}`);
 
-    fetch(`http://104.248.25.229:3001/api/routes/visualizationPoints?startLocation=${startLocation}&endLocation=${endLocation}`)
-    // fetch(`http://localhost:3001/api/routes/visualizationPointsAstar?startLocation=${startLocation}&endLocation=${endLocation}`)
+    // fetch(`http://104.248.25.229:3001/api/routes/visualizationPoints?startLocation=${startLocation}&endLocation=${endLocation}`)
+    fetch(`http://localhost:3001/api/routes/visualizationPointsAstar?startLocation=${startLocation}&endLocation=${endLocation}&type=${routeType}`)
         .then(response => response.json())
         .then(json => {
           console.log(json);

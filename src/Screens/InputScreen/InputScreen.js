@@ -13,14 +13,9 @@ class InputScreen extends Component {
     this.state = {
       startLocation: '',
       endLocation: '',
+      routeType: 'BEST'
     };
   }
-
-  client = axios.create({
-    baseURL: 'http://localhost:3001/',
-    timeout: 10000,
-    responseType: 'json'
-  });
 
   handleStartLocationChange = (event) => {
     this.setState({ startLocation: event.target.value });
@@ -35,12 +30,16 @@ class InputScreen extends Component {
     this.setState({ shouldTranstionToMap: true})
   }
 
+  handleRouteTypeChange = (event) => {
+    this.setState({ routeType: event.target.value });
+  }
+
   render() {
     if (this.state.shouldTranstionToMap) {
       this.props.history.push('/');
       return <Redirect to={{
         pathname: '/map', 
-        state: { startLocation: this.state.startLocation, endLocation: this.state.endLocation}
+        state: { startLocation: this.state.startLocation, endLocation: this.state.endLocation, routeType: this.state.routeType}
       }}
       />;
     }
@@ -76,6 +75,10 @@ class InputScreen extends Component {
               placeholder={"End"}
             />
             <p></p>
+            <div onChange={this.handleRouteTypeChange}>
+              <input type="radio" className="radio" value="BEST" defaultChecked name="gender"/> <label className="label-small">Best</label>
+              <input type="radio" className="radio" value="SHORTEST" name="gender"/> <label className="label-small">Shortest</label>
+            </div>
             <button 
               className="button"
               type="submit" 

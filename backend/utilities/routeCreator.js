@@ -3,6 +3,8 @@ var Dijkstra = require('../utilities/dijkstra');
 var NavigationRoute = require('../utilities/navigationRoute');
 let path = require('ngraph.path');
 
+const ROUTE_SHORTEST = 'SHORTEST';
+
 function obtainCompleteDijkstraRoute(graph, decodedStartLocation, decodedEndLocation) {
   
   const possibleStartVertices = graph.nearestStartVertices(decodedStartLocation.location);
@@ -44,14 +46,16 @@ function obtainCompleteDijkstraRoute(graph, decodedStartLocation, decodedEndLoca
   return bestNavigationRoute;
 }
 
-function obtainCompleteAStarRoute(graph, decodedStartLocation, decodedEndLocation) {
+function obtainCompleteAStarRoute(graph, decodedStartLocation, decodedEndLocation, routeType) {
+
+  let searchingShortest = routeType === ROUTE_SHORTEST;
   
   const possibleStartVertices = graph.nearestStartVertices(decodedStartLocation.location);
   const possibleEndVertices = graph.nearestEndVertices(decodedEndLocation.location);
 
   var start = new Date()
   let bestNavigationRoute;
-  const aStarGraph = graph.genrateAStarGraph();
+  const aStarGraph = graph.genrateAStarGraph(searchingShortest);
   possibleStartVertices.forEach((startVertexData) => {
     possibleEndVertices.forEach((endVertexData) => {
       let pathFinder = path.aStar(aStarGraph, {
@@ -73,8 +77,17 @@ function obtainCompleteAStarRoute(graph, decodedStartLocation, decodedEndLocatio
       console.log(`*******************************************************`);
       if (bestNavigationRoute === undefined) {
         bestNavigationRoute = navigationRoute;
-      } else if (navigationRoute.totalWeight < bestNavigationRoute.totalWeight) {
-        bestNavigationRoute = navigationRoute;
+      } else {
+        if (searchingShortest) {
+          if (navigationRoute.totalLength < bestNavigationRoute.totalLength) {
+            bestNavigationRoute = navigationRoute;
+          }
+        }
+        else {
+          if (navigationRoute.totalWeight < bestNavigationRoute.totalWeight) {
+            bestNavigationRoute = navigationRoute;
+          }
+        }
       }
     });
   });
