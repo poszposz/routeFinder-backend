@@ -3,7 +3,6 @@ import {
   Component,
 } from 'react';
 import { Redirect } from 'react-router-dom'
-import axios from 'axios';
 import './InputScreen.css';
 
 class InputScreen extends Component {
@@ -26,7 +25,6 @@ class InputScreen extends Component {
   }
 
   handleSubmit = () => {
-    console.log(`Submitted with start: ${this.state.startLocation}, end: ${this.state.endLocation}`);
     this.setState({ shouldTranstionToMap: true})
   }
 

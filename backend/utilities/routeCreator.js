@@ -3,8 +3,6 @@ var Dijkstra = require('../utilities/dijkstra');
 var NavigationRoute = require('../utilities/navigationRoute');
 let path = require('ngraph.path');
 
-const ROUTE_SHORTEST = 'SHORTEST';
-
 function obtainCompleteDijkstraRoute(graph, decodedStartLocation, decodedEndLocation) {
   
   const possibleStartVertices = graph.nearestStartVertices(decodedStartLocation.location);
@@ -48,7 +46,10 @@ function obtainCompleteDijkstraRoute(graph, decodedStartLocation, decodedEndLoca
 
 function obtainCompleteAStarRoute(graph, decodedStartLocation, decodedEndLocation, routeType) {
 
-  let searchingShortest = routeType === ROUTE_SHORTEST;
+  const searchingShortest = routeType === 'SHORTEST';
+  console.log(`*******************************************************`);
+  console.log(`Searching shortest: ${searchingShortest}`);
+  console.log(`*******************************************************`);
   
   const possibleStartVertices = graph.nearestStartVertices(decodedStartLocation.location);
   const possibleEndVertices = graph.nearestEndVertices(decodedEndLocation.location);
@@ -72,22 +73,13 @@ function obtainCompleteAStarRoute(graph, decodedStartLocation, decodedEndLocatio
       const combined = graph.parseOptimizationResult(shortestRouteVeritceIds);
       let navigationRoute = new NavigationRoute(decodedStartLocation, decodedEndLocation, startVertexData.vertex, endVertexData.vertex, combined);
       console.log(`*******************************************************`);
-      console.log(`Found total weight A*: ${navigationRoute.totalWeightReachExcluded}`);
-      console.log(`Found total length A*: ${navigationRoute.totalLengthReachExcluded}`);
+      console.log(`Found total weight A*: ${navigationRoute.totalWeight}`);
+      console.log(`Found total length A*: ${navigationRoute.totalLength}`);
       console.log(`*******************************************************`);
       if (bestNavigationRoute === undefined) {
         bestNavigationRoute = navigationRoute;
-      } else {
-        if (searchingShortest) {
-          if (navigationRoute.totalLength < bestNavigationRoute.totalLength) {
-            bestNavigationRoute = navigationRoute;
-          }
-        }
-        else {
-          if (navigationRoute.totalWeight < bestNavigationRoute.totalWeight) {
-            bestNavigationRoute = navigationRoute;
-          }
-        }
+      } else if (navigationRoute.totalWeight < bestNavigationRoute.totalWeight) {
+        bestNavigationRoute = navigationRoute;
       }
     });
   });

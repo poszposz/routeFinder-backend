@@ -118,11 +118,11 @@ router.get('/visualizationPoints', async function(req, res, next) {
 });
 
 router.get('/visualizationPointsAStar', async function(req, res, next) {
-  let { startLocation, endLocation } = req.query;
+  let { startLocation, endLocation, routeType } = req.query;
   try {
     const decodedStartLocation = await decodeLocation(startLocation);
     const decodedEndLocation = await decodeLocation(endLocation);
-    const result = routeCreator.obtainCompleteAStarRoute(preDownloadedGraph, decodedStartLocation, decodedEndLocation);
+    const result = routeCreator.obtainCompleteAStarRoute(preDownloadedGraph, decodedStartLocation, decodedEndLocation, routeType);
     const mappedResults = result.routes.map(route => route.segments).flatten().map(segment => {
       return [parseFloat(segment.start.latitude), parseFloat(segment.start.longitude)];
     });

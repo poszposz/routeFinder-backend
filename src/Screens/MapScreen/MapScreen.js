@@ -20,15 +20,13 @@ class MapScreen extends Component {
   }
 
   componentDidMount() {
+    console.log(`${JSON.stringify(this.props.location.state['routeType'])}`);
     const { startLocation, endLocation, routeType } = this.props.location.state;
-    console.log(`Starting: ${this.props.location.state.startLocation}`);
-    console.log(`Ending: ${this.props.location.state.endLocation}`);
-
+    console.log(`${routeType}`);
     // fetch(`http://104.248.25.229:3001/api/routes/visualizationPoints?startLocation=${startLocation}&endLocation=${endLocation}`)
-    fetch(`http://localhost:3001/api/routes/visualizationPointsAstar?startLocation=${startLocation}&endLocation=${endLocation}&type=${routeType}`)
+    fetch(`http://localhost:3001/api/routes/visualizationPointsAstar?startLocation=${startLocation}&endLocation=${endLocation}&routeType=${routeType}`)
         .then(response => response.json())
         .then(json => {
-          console.log(json);
           this.setState({ waypointsLoaded: true, waypoints: json.route, reachStart: json.reachStart, reachEnd: json.reachEnd });
         })
         .catch(error => {
