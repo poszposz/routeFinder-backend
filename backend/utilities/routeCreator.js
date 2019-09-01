@@ -3,6 +3,11 @@ var Dijkstra = require('../utilities/dijkstra');
 var NavigationRoute = require('../utilities/navigationRoute');
 let path = require('ngraph.path');
 
+const ROUTE_TYPE_SHORTEST = "SHORTEST";
+const ALGORITHM_A_STAR = "ASTAR";
+const ALGORITHM_A_GREEDY = "AGREEDY";
+const ALGORITHM_NBA = "NBA";
+
 function obtainCompleteDijkstraRoute(graph, decodedStartLocation, decodedEndLocation) {
   
   const possibleStartVertices = graph.nearestStartVertices(decodedStartLocation.location);
@@ -44,9 +49,11 @@ function obtainCompleteDijkstraRoute(graph, decodedStartLocation, decodedEndLoca
   return bestNavigationRoute;
 }
 
-function obtainCompleteAStarRoute(graph, decodedStartLocation, decodedEndLocation, routeType) {
+function obtainCompleteAStarRoute(graph, decodedStartLocation, decodedEndLocation, routeType, algorithm = undefined) {
 
-  const searchingShortest = routeType === 'SHORTEST';
+  const searchingShortest = routeType === ROUTE_TYPE_SHORTEST;
+  algorithm = algorithm === undefined ? ALGORITHM_A_STAR : algorithm;
+
   console.log(`*******************************************************`);
   console.log(`Searching shortest: ${searchingShortest}`);
   console.log(`*******************************************************`);
@@ -59,23 +66,16 @@ function obtainCompleteAStarRoute(graph, decodedStartLocation, decodedEndLocatio
   const aStarGraph = graph.genrateAStarGraph(searchingShortest);
   possibleStartVertices.forEach((startVertexData) => {
     possibleEndVertices.forEach((endVertexData) => {
-      let pathFinder = path.aStar(aStarGraph, {
-        distance(fromNode, toNode, link) {
-          return link.data.weight;
-        },
-        heuristic(fromNode, toNode) {
-          return distanceCalculation.distanceBetweenLocations(toNode.data.vertex.centerLocation, decodedEndLocation.location);
-        }
-      });
-      const shortestRouteArray = pathFinder.find(endVertexData.vertex.id, startVertexData.vertex.id);
+      let finder = pathFinder(algorithm, aStarGraph, decodedEndLocation.location);
+      const shortestRouteArray = finder.find(endVertexData.vertex.id, startVertexData.vertex.id);
       const shortestRouteVeritceIds = shortestRouteArray.map(data => data.id);
       // console.log(`Nearest start vertex: ${JSON.stringify(startVertexData.vertex.id)}, end: ${JSON.stringify(endVertexData.vertex.id)}`);
       const combined = graph.parseOptimizationResult(shortestRouteVeritceIds);
       let navigationRoute = new NavigationRoute(decodedStartLocation, decodedEndLocation, startVertexData.vertex, endVertexData.vertex, combined);
-      console.log(`*******************************************************`);
-      console.log(`Found total weight A*: ${navigationRoute.totalWeight}`);
-      console.log(`Found total length A*: ${navigationRoute.totalLength}`);
-      console.log(`*******************************************************`);
+      // console.log(`*******************************************************`);
+      // console.log(`Found total weight A*: ${navigationRoute.totalWeight}`);
+      // console.log(`Found total length A*: ${navigationRoute.totalLength}`);
+      // console.log(`*******************************************************`);
       if (bestNavigationRoute === undefined) {
         bestNavigationRoute = navigationRoute;
       } else if (navigationRoute.totalWeight < bestNavigationRoute.totalWeight) {
@@ -85,8 +85,8 @@ function obtainCompleteAStarRoute(graph, decodedStartLocation, decodedEndLocatio
   });
   var end = new Date() - start
   console.log(`*******************************************************`);
-  console.log(`Executed A*: ${(possibleStartVertices.length * possibleEndVertices.length)} times.`);
-  console.info('A Star execution time: %dms', end)
+  console.log(`Executed ${algorithm}: ${(possibleStartVertices.length * possibleEndVertices.length)} times.`);
+  console.info(`${algorithm} execution time: ${end}ms`)
   console.log(`Best route length: ${bestNavigationRoute.totalLength}`);
   console.log(`Best route weight: ${bestNavigationRoute.totalWeight}`);
   console.log(`*******************************************************`);
@@ -95,6 +95,42 @@ function obtainCompleteAStarRoute(graph, decodedStartLocation, decodedEndLocatio
   bestNavigationRoute.loadTotalLength();
 
   return bestNavigationRoute;
+}
+
+function pathFinder(algorithmType, graph, endLocation) {
+  // eslint-disable-next-line default-case
+  switch (algorithmType) {
+    case ALGORITHM_A_STAR:
+        return path.aStar(graph, {
+          distance(fromNode, toNode, link) {
+            return link.data.weight;
+          },
+          heuristic(fromNode, toNode) {
+            return distanceCalculation.distanceBetweenLocations(toNode.data.vertex.centerLocation, endLocation);
+          }
+        });
+    case ALGORITHM_A_GREEDY:
+        return path.aGreedy(graph, {
+          distance(fromNode, toNode, link) {
+            return link.data.weight;
+          },
+          heuristic(fromNode, toNode) {
+            return distanceCalculation.distanceBetweenLocations(toNode.data.vertex.centerLocation, endLocation);
+          }
+        });
+    case ALGORITHM_NBA:
+        return path.nba(graph, {
+          distance(fromNode, toNode, link) {
+            return link.data.weight;
+          },
+          heuristic(fromNode, toNode) {
+            return distanceCalculation.distanceBetweenLocations(toNode.data.vertex.centerLocation, endLocation);
+          }
+        });
+    default:
+        console.log('Invalid algorithm type supplied.');
+        
+  }
 }
 
 module.exports = {

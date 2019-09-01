@@ -64,7 +64,7 @@ router.get('/findOptimized', async function(req, res, next) {
 });
 
 router.get('/findOptimizedAStar', async function(req, res, next) {
-  let { startLocation, endLocation, startLocationLatitude, startLocationLongitude, routeType } = req.query;
+  let { startLocation, endLocation, startLocationLatitude, startLocationLongitude, routeType, algorithm } = req.query;
   try {
     let decodedStartLocation;
     if (startLocationLatitude === undefined | startLocationLongitude === undefined) {
@@ -79,7 +79,7 @@ router.get('/findOptimizedAStar', async function(req, res, next) {
       };
     }
     const decodedEndLocation = await decodeLocation(endLocation);
-    const result = routeCreator.obtainCompleteAStarRoute(preDownloadedGraph, decodedStartLocation, decodedEndLocation, routeType);
+    const result = routeCreator.obtainCompleteAStarRoute(preDownloadedGraph, decodedStartLocation, decodedEndLocation, routeType, algorithm);
     let response = {
       'startLocation': decodedStartLocation,
       'endLocation': decodedEndLocation,
