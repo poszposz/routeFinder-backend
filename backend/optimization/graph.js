@@ -27,13 +27,11 @@ class Graph {
   }
 
   nearestVertices(vertices, location) {
-    let sorted = vertices.sort((first, second) => {
+    const sorted = vertices.sort((first, second) => {
       const firstDistance = distanceCalculation.distanceBetweenLocations(location, first.centerLocation);
       const secondDistance = distanceCalculation.distanceBetweenLocations(location, second.centerLocation);
       return firstDistance - secondDistance;
     });
-    // Ignore search if route is a link, don't want to start at it.
-    sorted = sorted.filter(route => !route.name.includes('link'))
     const parentRouteIds = [];
     const sortedUniqueParentRouteIds = sorted.filter(vertex => {
       if (parentRouteIds.includes(vertex.id)) { return false; }

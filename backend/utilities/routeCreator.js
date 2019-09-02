@@ -23,13 +23,8 @@ function obtainCompleteDijkstraRoute(graph, decodedStartLocation, decodedEndLoca
       if (shortestRoute === null) {
         return;
       }
-      console.log(`Nearest start vertex: ${JSON.stringify(startVertexData.vertex.id)}, end: ${JSON.stringify(endVertexData.vertex.id)}`);
-      console.log(`Vertices ids: ${shortestRoute}`);
       const combined = graph.parseOptimizationResult(shortestRoute);
-      console.log(`All weights: ${combined.map(route => route.weight)}`);
-      
       let navigationRoute = new NavigationRoute(decodedStartLocation, decodedEndLocation, startVertexData.vertex, endVertexData.vertex, combined);
-      console.log(`Found total weight Dijkstra: ${navigationRoute.totalWeightReachExcluded}`);
       if (bestNavigationRoute === undefined) {
         bestNavigationRoute = navigationRoute;
       } else if (navigationRoute.totalWeight < bestNavigationRoute.totalWeight) {
@@ -38,10 +33,12 @@ function obtainCompleteDijkstraRoute(graph, decodedStartLocation, decodedEndLoca
     });
   });
   var end = new Date() - start;
+  console.log(`*******************************************************`);
   console.log(`Executed Dijkstra: ${(possibleStartVertices.length * possibleEndVertices.length)} times.`);
   console.info('Dijkstra execution time: %dms', end);
   console.log(`Best route length route only: ${bestNavigationRoute.totalLengthReachExcluded}`);
   console.log(`Best route weight route only: ${bestNavigationRoute.totalWeightReachExcluded}`);
+  console.log(`*******************************************************`);
 
   bestNavigationRoute.loadTotalLength();
   bestNavigationRoute.loadTotalWeight();

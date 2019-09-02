@@ -106,9 +106,9 @@ router.get('/visualizationPoints', async function(req, res, next) {
       return [parseFloat(segment.start.latitude), parseFloat(segment.start.longitude)];
     });
     let response = {
-      'route': mappedResults,
       'reachStart': result.reachStartCoordinates(),
       'reachEnd': result.reachEndCoordinates(),
+      'route': mappedResults
     };
     res.json(response);
   } catch (error) {
