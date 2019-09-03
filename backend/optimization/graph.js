@@ -71,8 +71,10 @@ class Graph {
       vertex.outcomingRoutes.forEach((route) => {
         let weight;
         if (searchShortest) {
-          if (route.isLink | route.isIsolationLink) {
+          if (route.isIsolationLink) {
             weight = route.weight;
+          } else if (route.isLink) {
+            weight = route.totalLength * 1.2;
           } else {
             weight = route.totalLength;
           }

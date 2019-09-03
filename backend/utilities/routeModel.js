@@ -41,7 +41,9 @@ class Route {
     } else if (this.category.includes('kontraruch')) {
       this.weightMultiplier = 0.8;
     } else if (this.category.includes('c16t22')) {
-      this.weightMultiplier = 0.9;
+      this.weightMultiplier = 0.8;
+    } else if (this.category.includes('s_zam')) {
+      this.weightMultiplier = 0.8;
     } else if (this.category.includes('standard_link')) {
       if (this.totalLength <= 10) {
         this.weightMultiplier = 1.5;
